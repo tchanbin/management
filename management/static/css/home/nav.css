@@ -1,0 +1,14 @@
+#nav {
+    position: fixed;
+    width: 15%;
+    left: 0px;
+    top: 70px;
+    bottom: 0px;
+    padding-top: 40px;
+    margin: 0;
+    overflow: auto;
+    border-right: 2px solid lightgrey;
+    background: #161824;
+    color: #666666;
+    font-size: 16px;
+}

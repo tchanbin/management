@@ -1,0 +1,93 @@
+{% extends 'home/homebase.html' %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/resetpwd.css") }}">
+
+{% endblock %}
+
+
+
+{% block title %}修改密码{% endblock %}
+{% block page_content %}
+
+
+    <div class="panel panel-primary ">
+        <div class="col-md-3"></div>
+        <form action="" method="post" class="col-md-5 " id="rstpwdform">
+
+            {{ form.csrf_token() }}
+            <fieldset>
+                <legend class="text-center" id="rstpwd">修改密码</legend>
+                <div class="form-group" role="oldpwdfield">
+                    {{ form.old_password.label(for="oldpwd") }}
+                    {{ form.old_password(id="oldpwd",class="form-control") }}
+                    {% if form.old_password.errors %}
+                        {% for err in form.old_password.errors %}
+                            <span>{{ err }}</span>
+                        {% endfor %}
+                    {% endif %}
+
+                </div>
+                <div class="form-group" role="passwordfield1">
+                    {{ form.password1.label(for="pwd") }}
+                    {{ form.password1(id="pwd",class="form-control") }}
+                    {% if form.password1.errors %}
+                        {% for err in form.password1.errors %}
+
+                            <span>{{ err }}</span>
+                        {% endfor %}
+                    {% endif %}
+
+                </div>
+                <div class="form-group" role="passwordfield2">
+                    {{ form.password2.label(for="pwd") }}
+                    {{ form.password2(id="pwd2",class="form-control") }}
+                    {% if form.password2.errors %}
+                        {% for err in form.password2.errors %}
+
+                            <span>{{ err }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+            </fieldset>
+            <div>
+                {{ form.submit(class="btn btn-primary btn-block") }}
+            </div>
+            <div class="col-md-12 " role="修改密码成功">
+                {% for msg in get_flashed_messages() %}
+
+                    <br> <p class="alert-success text-center">{{ msg }}</p>
+
+                {% endfor %}
+
+            </div>
+
+        </form>
+        <div class="col-md-4"></div>
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    {#    插入成功提示#}
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'error',//消息类型。error、info、success
+                    hideAfter: 3,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
+{% endblock %}
+

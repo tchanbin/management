@@ -1,0 +1,21 @@
+{% extends 'home/homebase.html' %}
+
+{% block title %}我的流程{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/index.css") }}">
+
+{% endblock %}
+
+{% block page_content %}
+      <div class="panel panel-primary"><br><br><br><br><br><br>
+        <div class="panel-heading text-center">数据提交失败，请联系管理员</div>
+
+    </div>
+{% endblock %}
+
+
+
+
+

@@ -1,0 +1,30 @@
+body{
+     background: url("../../img/Highspeed.jpg") no-repeat;
+    background-size: cover;
+
+}
+#content {
+    position: relative;
+    top:70px;
+    margin-top: 0px;
+    height: 550px;
+    padding: 0;
+    border: none;
+    /*background: url("../../img/Highspeed.jpg") no-repeat;*/
+    background-size: 100% 100%;
+    color: white;
+    bottom: 0;
+}
+
+#content .row {
+    margin-top: 90px;
+    margin-bottom: 50px;
+}
+
+#login {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+#userlogin {
+    color: #ffffff;
+}

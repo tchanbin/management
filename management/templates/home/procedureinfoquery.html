@@ -1,0 +1,130 @@
+<!-- 详细信息模态框（Modal） -->
+<div>
+    <div class="modal fade " id="mymodal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                {#                            模态框的头部#}
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-hidden="true">&times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">详细信息</h4>
+                </div>
+                {#                        模态框的身体#}
+                <div class="modal-body">
+                    {#                第一行 基本信息#}
+                    <div class="row">
+                        <div class="col-md-3 ">
+                            <label for="">流程编号: <span id="procedure_id"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">申请人: <span id="user_name"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">电话: <span id="tel"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">部门: <span id="department"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <hr>
+                    {#                第二行 用车信息#}
+                    <div class="row">
+                        <div class="col-md-3 ">
+                            <label for="">用车类型: <span id="car_name"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">申请人: <span id="user_name2"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">申请时间: <span id="approval_time"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">目的地: <span id="arrival_place"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <br>
+                    {#                 第三行 用车信息#}
+                    <div class="row">
+                        <div class="col-md-3 ">
+                            <label for="">预约开始时间: <span id="book_start_datetime"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">预约结束时间: <span id="book_end_datetime"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">实际开始时间: <span id="actual_start_datetime"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">实际结束时间: <span id="actual_end_datetime"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <br>
+                    {#                 第四行 用车信息#}
+                    <div class="row">
+                        <div class="col-md-3 ">
+                            <label for="">乘车人数: <span id="number"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">乘车名单: <span id="namelist"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">用车原因: <span id="reason"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">是否使用ETC: <span id="etc"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <br>
+                    {#                 第五行 用车信息#}
+                    <div class="row">
+                        <div class="col-md-3 ">
+                            <label for="">一级审批人: <span id="first_approval"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">审批状态: <span id="status1"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">二级审批人: <span id="second_approval"></span>
+                            </label>
+                        </div>
+                        <div class="col-md-3 ">
+                            <label for="">审批状态: <span id="status2"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <br>
+
+                    {#                        模态框的底部#}
+                    <div class=" modal-footer">
+                        <button type="button" class="btn btn-default"
+                                data-dismiss="modal">关闭
+                        </button>
+                        <!-- <button type="submit" class="btn btn-primary">提交</button> -->
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal -->
+        </div>
+    </div>
+</div>

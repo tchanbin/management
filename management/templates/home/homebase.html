@@ -1,0 +1,17 @@
+{% extends 'home/base.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block title %}用户登录{% endblock %}
+
+{% block content %}
+    <div class="row">
+        {#        插入导航#}
+        {% include "home/nav.html" %}
+        {#        插入网页内容#}
+        <div id="pagecontent">
+            {% block page_content %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}
+

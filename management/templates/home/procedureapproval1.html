@@ -1,0 +1,249 @@
+{% extends 'home/homebase.html' %}
+
+{% block title %}用车流程申请表{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/startprocedure.css") }}">
+
+{% endblock %}
+{% block page_content %}
+
+    <div class="panel panel-primary ">
+        <div class="panel-heading text-center">用车流程申请表</div>
+        <div class="container">
+            <div class="row">
+                <form action="" id="procedureapproval" method="post">
+                    {{ form.csrf_token() }}
+                    <filedset>
+                        <legend class="media ">基本信息</legend>
+                        <div class="row">
+                            <div class="form-group col-md-3">
+                                <label for="">用户姓名：</label>
+                                <label for="">{{ current_user.username }}</label>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="">部门：</label>
+                                <label for="">{{ current_user.department }}</label>
+                            </div>
+                            <div class="form-group col-md-3 form-inline ">
+                                <label for="" class="starinfo">电话：</label>
+                                {{ form.tel  (value=current_user.tel) }}<br>
+                                {#                                <span class="danger starinfo">*</span>#}
+                                {% if form.tel.errors %}
+                                    {% for err in form.tel.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="">发起日期：</label>
+                                {{ moment(current_time).format('LL') }}
+
+                            </div>
+                        </div>
+
+                    </filedset>
+                    <filedset>
+                        <legend class="media">流程信息</legend>
+                        <div class="row">
+                            <div class="form-group col-md-4 form-inline">
+                                <label for="" class="starinfo">申请车型：</label>
+                                {{ form.carname (class="form-control") }}
+                                {% if form.carname.errors %}
+                                    {% for err in form.carname.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div class="form-group col-md-4 form-inline">
+                                <label for="bookstartdatetime" class="starinfo">预约开始时间：</label>
+                                {{ form.bookstartdatetime(class="form-control",autocomplete="off") }}
+                                <br> {% if form.bookstartdatetime.errors %}
+                                {% for err in form.bookstartdatetime.errors %}
+                                    <span class="errinfo">{{ err }}</span>
+                                {% endfor %}
+                            {% endif %}
+
+                            </div>
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="bookenddatetime" class="starinfo">预约结束时间：</label>
+                                {#                                <input type="text" id="bookenddatetime" name="bookenddatetime" class="form-control"#}
+                                {#                                       autocomplete="off">#}
+                                {{ form.bookenddatetime(class="form-control",autocomplete="off") }}<br>
+                                {% if form.bookenddatetime.errors %}
+                                    {% for err in form.bookenddatetime.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="arrivalplace" class="starinfo">到达地点：</label>
+                                {{ form.arrivalplace(id="arrivalplace",class="form-control") }}<br>
+                                {% if form.arrivalplace.errors %}
+                                    {% for err in form.arrivalplace.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="namelist">乘车名单：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
+                                {{ form.namelist(id="namelist",class="form-control") }}
+                                {% if form.namelist.errors %}
+                                    {% for err in form.namelist.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="number">乘车人数：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
+                                {{ form.number(id="number",class="form-control") }}<br>
+                                {% if form.number.errors %}
+                                    {% for err in form.number.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+
+
+                        </div>
+                        <div class="row">
+
+                            <div class="form-group col-md-8 form-inline ">
+                                <label for="reason" class="starinfo">用车原因：</label>
+                                {{ form.reason(id="reason",class="form-control",style="width:80%") }}<br>
+                                {% if form.reason.errors %}
+                                    {% for err in form.reason.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            <div class="form-group col-md-2 form-inline ">
+                                <label for="ifetc">是否需要ETC：</label>
+                                {{ form.ifetc(id="ifetc") }}
+                                {% if form.ifetc.errors %}
+                                    {% for err in form.ifetc.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+                        <div class="row text-center btn-block">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+{#                        <P>{% for msg in get_flashed_messages() %}#}
+{#                            {{ msg }}#}
+{#                        {% endfor %}#}
+{#                        </P>#}
+
+                    </filedset>
+                </form>
+            </div>
+        </div>
+    </div>
+    {#    datetimepicker的js脚本#}
+
+
+    {#   用车的状态#}
+    <table class="table table-striped table-bordered table-hover table-responsive text-left">
+        <tr class="info">
+            <td colspan="8">
+
+                <legend class="media"> 公务车预约和使用状态表</legend>
+        </tr>
+        <tr>
+            <th>序号</th>
+            <th>车辆型号</th>
+            <th>申请人</th>
+            <th>预约使用时间</th>
+            <th>预约结束时间</th>
+            <th>实际使用时间</th>
+            <th>状态</th>
+
+        </tr>
+        {% if  carusestatus %}
+            {% for carusestatus in carusestatus %}
+
+                <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ carusestatus.cars.name }}</td>
+                <td>{{ carusestatus.users.username }}</td>
+                <td>{{ carusestatus.book_start_datetime }}</td>
+                <td>{{ carusestatus.book_end_datetime }}</td>
+                <td>{{ carusestatus.actual_start_datetime }}</td>
+                <td class="info">使用中</td>
+
+
+            {% endfor %}
+
+            <tr>
+                <td></td>
+            </tr>
+        {% else %}
+            <tr class="text-center text-warning">
+                <td colspan="8">暂时没有车辆被预约，您可以放心预约</td>
+            </tr>
+        {% endif %}
+
+    </table>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+     <script>
+        $("#bookstartdatetime").datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:ss',
+            language: 'zh-CN',
+            autoclose: true,
+            startView: 2,
+            todayBtn: true,
+
+        }).on('changeDate', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var begintime = $("#bookstartdatetime").val();
+            $("#bookenddatetime").datetimepicker('setStartDate', begintime);
+            $("#bookenddatetime").val("");
+        });
+        $("#bookenddatetime").datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:ss',
+            language: 'zh-CN',
+            autoclose: true,
+            startView: 2,
+            todayBtn: true,
+
+        }).on('changeDate', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var endtime = $("#bookenddatetime").val();
+            $("#bookstartdatetime").datetimepicker('setEndDate', endtime);
+        });
+    </script>
+{#   插入成功提示#}
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'error',//消息类型。error、info、success
+                    hideAfter: 3,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
+
+{% endblock %}

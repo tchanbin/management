@@ -1,0 +1,99 @@
+{% extends 'bootstrap/base.html' %}
+{#加入自定义样式#}
+{% block html_attribs %} lang="zh-CN" {% endblock %}
+{% block title %}恒鼎轨道 {% endblock %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/base.css") }}">
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/nav.css") }}">
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/bootstrap.min.css") }}">
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/bootstrap-datetimepicker.min.css") }}">
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/messenger.css") }}">
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/messenger-theme-flat.css") }}">
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript" src="{{ url_for("static",filename="js/jquery-3.4.1.min.js") }}"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/bootstrap.min.js") }}"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/bootstrap-datetimepicker.min.js") }}"
+            charset="UTF-8"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/bootstrap-datetimepicker.zh-CN.js") }}"
+            charset="UTF-8"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/base.js") }}"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/messenger.min.js") }}"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/messenger-theme-flat.js") }}"></script>
+
+
+    {{ moment.include_moment(local_js=url_for('static',filename='js/moment-with-locales.min.js')) }}
+    {{ moment.lang('zh-CN') }}
+
+{% endblock %}
+{
+
+
+{#导航页#}
+{% block navbar %}
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            {#        <!--小屏幕导航按E钮和logo-->#}
+            <div class="navbar-header">
+                {#                    <button class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">#}
+                {#                        <span class="icon-bar"></span>#}
+                {#                        <span class="icon-bar"></span>#}
+                {#                        <span class="icon-bar"></span>#}
+                {#                    </button>#}
+
+                <img id="logo" src="{{ url_for("static",filename="img/logo.jpg") }}" alt="logo" width="10%"
+                     height="10%"><a
+                    href="index" class="navbar-brand pull-left">恒鼎轨道 </a>
+                <p id="navtext" class="small pull-left"><span>|</span>&nbsp;行政管理系统</p>
+
+            </div>
+            {#        <!--小屏幕导航按钮和logo-->#}
+            {#        <!--导航-->#}
+            {#                <div class="navbar-collapse collapse pull-left">#}
+            {#                    <ul class="nav navbar-nav">#}
+            {#                        <li><span>|</span>&nbsp;行政管理系统</li>#}
+            {##}
+            {#                    </ul>#}
+            {#                </div>#}
+            <div class="navbar-collapse collapse pull-right">
+                <ul class="nav navbar-nav">
+                    <li>
+                        {% if current_user.is_authenticated %}
+                            <p>{{ current_user.username }}
+                                <span>|</span>&nbsp;
+                                <a type="button" href="{{ url_for("home.logout") }}">退出</a>
+                            </p>
+
+                        {% else %}
+                            <p>未登录</p>
+                        {% endif %}
+
+                    </li>
+
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+
+{% endblock %}
+
+{% block content %}
+    {#        {% block nav_content %} {% endblock %}#}
+    {#        {% block p_content %} {% endblock %}#}
+    {#        {% block page_content %}{% endblock %}#}
+
+{% endblock %}
+
+{#脚部#}
+
+{#{% block footer %}#}
+{#    <div id="footer" class="col-md-12 navbar-fixed-bottom">#}
+{#        <P class="text-center"><span class="glyphicon glyphicon-phone"></span>&nbsp;&nbsp;版权归恒鼎行政办公室所有，如有问题请及时和柴洪静联系#}
+{#        </P>#}
+{#    </div>#}
+{#{% endblock %}#}
+
+

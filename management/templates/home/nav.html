@@ -1,0 +1,24 @@
+<div id="nav">
+    <ul class="nav nav-pills nav-stacked text-center">
+        <li id="navtag1"><a id="navtag1a" href="{{ url_for("home.resetpwd") }}">修改密码</a></li>
+        <li id="navtag2"><a id="navtag2a"  href="{{ url_for("home.index") }}">我的流程</a></li>
+        <li id="navtag3"><a id="navtag3a" href="{{ url_for("home.startapproval") }}">发起流程</a></li>
+        <li id="navtag4"><a id="navtag4a" href="{{ url_for("home.L1L2approval") }}">待审流程</a></li>
+        <li id="navtag5"><a id="navtag5a" href="{{ url_for("home.myapprovaledprocedure") }}">已审流程</a></li>
+        <li id="navtag6"><a id="navtag6a" href="{{ url_for("home.confirmprocedure") }}">确认流程</a></li>
+        <li id="navtag7"><a id="navtag7a"href="{{ url_for("home.rejectedprocedure") }}">作废流程</a></li>
+
+    </ul>
+</div>
+
+{##}
+{#<script type='text/javascript'>#}
+{#    $(document).ready(function () {// ready 事件#}
+{#        $("li").each(function (index) {//遍历对象  each 遍历函数 对li进行遍历，第一个li对应index0 ，每个都执行function（index）例如第一个function（0），index为形参， index从0开始#}
+{#            $(this).click(function () {//点击触发事件#}
+{#                $("li").removeClass("active");//删除当前元素的样式#}
+{#                $("li").eq(index).addClass("active");//添加当前元素的样式，eq从0开始找到li标签的index的位置。#}
+{#            });#}
+{#        });#}
+{#    });#}
+{#</script>#}
