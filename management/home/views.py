@@ -3,12 +3,14 @@ from flask import render_template, redirect, url_for, abort, flash, request, \
 from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm
 from flask_login import login_required, current_user, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, extract
 from ..models import Permission, Role, User, CarProcedureInfo, CarList, ProcedureList
 from . import home
-from management import db
+from management import db, excel
 from datetime import datetime
 from management.decorators import permission_required
+from openpyxl import Workbook
+from openpyxl.writer.excel import save_virtual_workbook
 
 
 # 用户登录
@@ -401,6 +403,79 @@ def rejectedprocedure():
     return render_template("home/rejectedprocedure.html", my_procedure=my_procedure, pagination=pagination)
 
 
+# 所有流程清单页
+@home.route("/procedurelists", methods=["GET", "POST"])
+@login_required
+# @permission_required(Permission.L2_APPROVAL)
+def procedurelists():
+    if request.method == "POST":
+        year = request.form.get("year")
+        month = request.form.get("month")
+        arrays = CarProcedureInfo.query.filter(
+            extract("year", CarProcedureInfo.actual_end_datetime) == year,
+            extract("month", CarProcedureInfo.actual_end_datetime) == month
+
+        ).order_by(
+            CarProcedureInfo.actual_end_datetime.asc()).all()
+        if arrays:  # 如果有数据则导出
+            column = [["序号","流程编号", "结束日期", "申请人", "目的地","用车原因", "车型", "是否用ETC", "公里数"]]
+            i=1
+            for  array in arrays:
+                list = array.jsonstr()  # 将每一行查询的数据转换成字典格式
+                array_content = [i,
+                                 list["id"],
+                                 list["actual_end_datetime"][0:10],
+                                 list["user_name"],
+                                 list["arrival_place"],
+                                 list["reason"],
+                                 list["car_name"],
+                                 list["etc"],
+                                 ]  # 将每一行的数据需要的先转换成字典，然后把相应内容导出。
+                column.append(array_content)
+                i+=1
+                filename = "用车情况按月统计表" + datetime.now().__str__()[0:10]
+
+            return excel.make_response_from_array(column, file_type="xls", file_name=filename)
+        else:
+            flash("该月份没有用车记录")
+            return redirect(url_for("home.procedurelists"))
+    if request.method == "GET":
+        page = request.args.get("page", 1, type=int)
+        keywords = request.args.get("keywords", "")
+
+        pagination = CarProcedureInfo.query.filter(CarProcedureInfo.user_id == current_user.id,
+                                                   CarProcedureInfo.approval_time.contains(keywords),
+                                                   ).order_by(
+            CarProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
+        ["FLASKY_PER_PAGE"], error_out=False)
+        my_procedure = pagination.items
+    return render_template("home/procedurelists.html", my_procedure=my_procedure, pagination=pagination)
+
+
+# 使用openpyxl导出方法，这个可以通过openpyxl对单元格的内容进行操作。
+# if request.method == "POST":
+#        year = request.form.get("year")
+#        month = request.form.get("month")
+#        query_sets = CarProcedureInfo.query.filter(
+#            extract("year", CarProcedureInfo.actual_end_datetime) == year,
+#            extract("month", CarProcedureInfo.actual_end_datetime) == month
+#
+#        ).order_by(
+#            CarProcedureInfo.actual_end_datetime.asc()).all()
+#        wb = Workbook()
+#        wb.create_sheet("用车信息")
+#        ws = wb.active
+#        ws["A4"] = 4
+#        ws["A1"]="nihao "
+#
+#        content = save_virtual_workbook(wb)  # 此处这个save_virtual_workbook函数将 Excel 文档写入到内存，返回一个字节数组。
+#
+#        resp = make_response(content)
+#        resp.headers["Content-Disposition"] = 'attachment; filename=carinfos.xlsx'
+#        resp.headers['Content-Type'] = 'application/x-xlsx'
+#        return resp
+
+
 # 用户登出
 @home.route("/logout", methods=["GET", "POST"])
 @login_required
@@ -444,5 +519,5 @@ def procedureinfos():
     procedureinfos = CarProcedureInfo.query.filter(
         CarProcedureInfo.id == procedure_id,
     ).first()
-    data=procedureinfos.jsonstr()
+    data = procedureinfos.jsonstr()
     return jsonify(data)

@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{{ url_for("static",filename="css/bootstrap-datetimepicker.min.css") }}">
     <link rel="stylesheet" href="{{ url_for("static",filename="css/messenger.css") }}">
     <link rel="stylesheet" href="{{ url_for("static",filename="css/messenger-theme-flat.css") }}">
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/jquery.resizableColumns.css") }}">
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/bootstrap-table.min.css") }}">
 {% endblock %}
 
 {% block scripts %}
@@ -22,6 +24,9 @@
     <script type="text/javascript" src="{{ url_for("static",filename="js/base.js") }}"></script>
     <script type="text/javascript" src="{{ url_for("static",filename="js/messenger.min.js") }}"></script>
     <script type="text/javascript" src="{{ url_for("static",filename="js/messenger-theme-flat.js") }}"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/jquery.resizableColumns.min.js") }}"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/bootstrap-table.min.js") }}"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/bootstrap-table-resizable.min.js") }}"></script>
 
 
     {{ moment.include_moment(local_js=url_for('static',filename='js/moment-with-locales.min.js')) }}

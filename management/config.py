@@ -21,7 +21,17 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://root:111111@127.0.0.1:3306/management"
 
 
+
+
+class ProductionConfig(Config):
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://root:111111@127.0.0.1:3306/management"
+
+    @classmethod
+    def init_app(cls, app):
+        Config.init_app(app)
+
 config = {
     'development': DevelopmentConfig,
-    'default': DevelopmentConfig
+    'default': DevelopmentConfig,
+    'production': ProductionConfig
 }

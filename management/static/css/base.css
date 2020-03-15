@@ -11,7 +11,8 @@ lvjing {
     float: left;
     margin-top: 6px;
 }
-.aok{
+
+.aok {
     color: whitesmoke;
 }
 
@@ -40,7 +41,7 @@ lvjing {
     box-shadow: 0px 2px 8px 0px rgba(50, 50, 50, 0.25);
     margin-bottom: 0;
     border-radius: unset;
-    margin-left:0 ;
+    margin-left: 0;
 }
 
 .navbar-default .navbar-brand {
@@ -123,6 +124,19 @@ lvjing {
 /*对页面的表格进行更改*/
 #procedureapproval {
     padding: 30px;
+}
+
+/*对模态框进行更改*/
+.modal-title {
+    font-weight: bolder;
+
+}
+
+.modal-body label {
+    font-weight: 500;
+    color: #666666;
+    font-size: 17px;
+
 }
 
 /*脚部*/
