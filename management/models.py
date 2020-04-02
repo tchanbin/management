@@ -55,6 +55,7 @@ class User(UserMixin, db.Model):
     tel = db.Column(db.String(15))
     password_hash = db.Column(db.String(128))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    status = db.Column(db.String(10))
 
     # car_procedure_infos = db.relationship('CarProcedureInfo', foreign_keys=[])
     # car_procedure_infos_first = db.relationship('CarProcedureInfo', backref='first_users', lazy='dynamic')
@@ -92,6 +93,17 @@ class User(UserMixin, db.Model):
     def ping(self):
         self.last_seen = datetime.utcnow()
         db.session.add(self)
+
+    def jsonstr(self):
+        jsonstr = {
+            "user_id": self.id,
+            "altername": self.username,
+            "alterdepartment": self.department,
+            "altertel": self.tel,
+            "alterroleid": self.role.name,
+
+        }
+        return jsonstr
 
 
 class AnonymousUser(AnonymousUserMixin):
@@ -165,11 +177,14 @@ class CarProcedureInfo(db.Model):
             "tel": self.tel,
             "department": self.department,
             "car_name": self.cars.name if self.car_id else "",
-            "approval_time": self.approval_time.strftime("%Y-%m-%d %H:%M:%S") if self.approval_time else "" ,
-            "book_start_datetime": self.book_start_datetime.strftime("%Y-%m-%d %H:%M:%S") if self.book_start_datetime else "",
+            "approval_time": self.approval_time.strftime("%Y-%m-%d %H:%M:%S") if self.approval_time else "",
+            "book_start_datetime": self.book_start_datetime.strftime(
+                "%Y-%m-%d %H:%M:%S") if self.book_start_datetime else "",
             "book_end_datetime": self.book_end_datetime.strftime("%Y-%m-%d %H:%M:%S") if self.book_end_datetime else "",
-            "actual_start_datetime": self.actual_start_datetime.strftime("%Y-%m-%d %H:%M:%S") if self.actual_start_datetime else "",
-            "actual_end_datetime": self.actual_end_datetime.strftime("%Y-%m-%d %H:%M:%S") if self.actual_end_datetime else "",
+            "actual_start_datetime": self.actual_start_datetime.strftime(
+                "%Y-%m-%d %H:%M:%S") if self.actual_start_datetime else "",
+            "actual_end_datetime": self.actual_end_datetime.strftime(
+                "%Y-%m-%d %H:%M:%S") if self.actual_end_datetime else "",
             "number": self.number,
             "namelist": self.namelist,
             "reason": self.reason,
@@ -179,7 +194,7 @@ class CarProcedureInfo(db.Model):
             "status1": "一级审批中" if self.status1 == 0 else "审批通过" if self.status1 == 1 else "一级审批被拒绝",
             "second_approval": self.second_users.username if self.second_approval else "",
             "status2": "二级审批中" if self.status2 == 0 else "审批通过" if self.status2 == 1 else "二级审批被拒绝",
-            "confirmer": self.car_procedure_infos_confirm.username if self.confirmer else"",
+            "confirmer": self.car_procedure_infos_confirm.username if self.confirmer else "",
             "miles": self.miles,
         }
         return jsonstr

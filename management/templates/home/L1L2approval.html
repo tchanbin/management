@@ -150,6 +150,11 @@
         });
     </script>
     <script>
+        $(function () {
+            $('#table').bootstrapTable()
+        })
+    </script>
+    <script>
         $(document).ready(function () {
             $(".query").click(function () {
                 var procedure_id = this.id
@@ -186,11 +191,7 @@
             })
         });
     </script>
-    <script>
-        $(function () {
-            $('#table').bootstrapTable()
-        })
-    </script>
+
 {% endblock %}
 
 

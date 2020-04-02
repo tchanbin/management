@@ -1,13 +1,17 @@
 <div id="nav">
     <ul class="nav nav-pills nav-stacked text-center">
         <li id="navtag1"><a id="navtag1a" href="{{ url_for("home.resetpwd") }}">修改密码</a></li>
-        <li id="navtag2"><a id="navtag2a"  href="{{ url_for("home.index") }}">我的流程</a></li>
+        <li id="navtag2"><a id="navtag2a" href="{{ url_for("home.index") }}">我的流程</a></li>
         <li id="navtag3"><a id="navtag3a" href="{{ url_for("home.startapproval") }}">发起流程</a></li>
         <li id="navtag4"><a id="navtag4a" href="{{ url_for("home.L1L2approval") }}">待审流程</a></li>
         <li id="navtag5"><a id="navtag5a" href="{{ url_for("home.myapprovaledprocedure") }}">已审流程</a></li>
         <li id="navtag6"><a id="navtag6a" href="{{ url_for("home.confirmprocedure") }}">确认流程</a></li>
-        <li id="navtag7"><a id="navtag7a"href="{{ url_for("home.rejectedprocedure") }}">作废流程</a></li>
-        <li id="navtag8"><a id="navtag8a"href="{{ url_for("home.procedurelists") }}">流程清单</a></li>
+        <li id="navtag7"><a id="navtag7a" href="{{ url_for("home.rejectedprocedure") }}">作废流程</a></li>
+        <li id="navtag8"><a id="navtag8a" href="{{ url_for("home.procedurelists") }}">流程清单</a></li>
+        {% if current_user.can(Permission.L2_APPROVAL) %}
+            <li id="navtag9"><a id="navtag9a" href="{{ url_for("home.usermanage") }}">用户管理</a></li>
+        {% endif %}
+
 
     </ul>
 </div>

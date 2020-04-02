@@ -148,3 +148,30 @@ class MilesForm(FlaskForm):
         label="提交申请",
 
     )
+
+# 添加新用户
+class AddNewUser(FlaskForm):
+    name = StringField(
+        label='姓名',
+        validators=[DataRequired("姓名不能为空")],
+        render_kw={"required": False}
+
+    )
+
+    tel= StringField(
+        label='电话',
+        render_kw={"required": False}
+
+    )
+
+    roleid = IntegerField(
+        label='角色',
+        validators=[DataRequired("姓名不能为空")],
+        render_kw={"required": False}
+
+    )
+
+    submit = SubmitField(
+        label="提交申请",
+
+    )

@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, abort, flash, request, \
     current_app, make_response, g, session, Response, jsonify, json
-from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm
+from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm, AddNewUser
 from flask_login import login_required, current_user, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_, or_, extract
@@ -14,13 +14,13 @@ from openpyxl.writer.excel import save_virtual_workbook
 
 
 # 用户登录
-@home.route("/login", methods=["GET", "POST"])
+@home.route("/", methods=["GET", "POST"])
 def login():
     form = LoginForm()
 
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-        if user is not None and user.verify_password(form.password.data):
+        if user is not None and user.verify_password(form.password.data) and user.status == "正常":
             login_user(user, form.remember_me.data)
             next = request.args.get("next")
             if next is None or not next.startswith("/"):
@@ -418,9 +418,9 @@ def procedurelists():
         ).order_by(
             CarProcedureInfo.actual_end_datetime.asc()).all()
         if arrays:  # 如果有数据则导出
-            column = [["序号","流程编号", "结束日期", "申请人", "目的地","用车原因", "车型", "是否用ETC", "公里数"]]
-            i=1
-            for  array in arrays:
+            column = [["序号", "流程编号", "结束日期", "申请人", "目的地", "用车原因", "车型", "是否用ETC", "公里数"]]
+            i = 1
+            for array in arrays:
                 list = array.jsonstr()  # 将每一行查询的数据转换成字典格式
                 array_content = [i,
                                  list["id"],
@@ -432,7 +432,7 @@ def procedurelists():
                                  list["etc"],
                                  ]  # 将每一行的数据需要的先转换成字典，然后把相应内容导出。
                 column.append(array_content)
-                i+=1
+                i += 1
                 filename = "用车情况按月统计表" + datetime.now().__str__()[0:10]
 
             return excel.make_response_from_array(column, file_type="xls", file_name=filename)
@@ -510,6 +510,134 @@ def resetpwd():
     return render_template("home/resetpwd.html", form=form)
 
 
+# 用户管理界面
+@home.route("/usermanage", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.L2_APPROVAL)
+def usermanage():
+    form = AddNewUser()
+    page = request.args.get("page", 1, type=int)
+    keywords = request.args.get("keywords", "")
+    pagination = User.query.filter(User.username.contains(keywords),
+                                   User.status == "正常",
+                                   ).order_by(
+        User.id.desc()).paginate(page, per_page=current_app.config
+    ["FLASKY_PER_PAGE"], error_out=False)
+    users = pagination.items
+
+    return render_template("home/usermanage.html", users=users, pagination=pagination, form=form)
+
+
+# 对删除的用户进行标记
+@home.route("/deluser/<user_id>", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.L2_APPROVAL)
+def deluser(user_id):
+    # 根据流程id找到该条记录
+    user = User.query.filter(
+        User.id == user_id,
+    ).first()
+    # 对该条记录的status1进行更新
+    user.status = "删除"
+    db.session.add(user)
+    name = user.username
+    try:
+        db.session.commit()
+        flash("你已删除{0}员工".format(name))
+    except:
+        db.session.rollback()
+        flash("删除失败")
+        return render_template("404.html")
+
+    return redirect(url_for("home.usermanage"))
+
+
+# 重置用户密码
+@home.route("/resetcode/<user_id>", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.L2_APPROVAL)
+def resetcode(user_id):
+    # 根据流程id找到该条记录
+    user = User.query.filter(
+        User.id == user_id,
+    ).first()
+    # 对该条记录的status1进行更新
+    user.password = "123456"
+    db.session.add(user)
+    name = user.username
+    try:
+        db.session.commit()
+        flash("你已重置员工{0}密码为123456".format(name))
+    except:
+        db.session.rollback()
+        flash("重置失败")
+        return render_template("404.html")
+
+    return redirect(url_for("home.usermanage"))
+
+
+# 添加新用户
+@home.route("/addnewuser", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.L2_APPROVAL)
+def addnewuser():
+    form = AddNewUser()
+    name = form.name.data
+    if not name:
+        flash("姓名不能为空，请重新提交")
+    if form.validate_on_submit():
+
+        department = request.form.get("department")
+        newuser = User(username=form.name.data,
+                       department=department,
+                       role_id=form.roleid.data,
+                       tel=form.tel.data,
+                       password="123456",
+                       status="正常"
+                       )
+
+        db.session.add(newuser)
+        try:
+            db.session.commit()
+            flash("您已添加新员工{0}，密码为123456".format(name))
+        except:
+            db.session.rollback()
+            flash("添加失败")
+            return render_template("404.html")
+
+    return redirect(url_for("home.usermanage"))
+
+# 修改用户信息
+@home.route("/alterusersubmit", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.L2_APPROVAL)
+def alterusersubmit():
+    user_id=request.form.get("user_id")
+    name=request.form.get("altername")
+    department=request.form.get("alterdepartment")
+    tel=request.form.get("altertel")
+    role_id=request.form.get("alterroleid")
+    # 根据流程id找到该条记录
+    user = User.query.filter(
+        User.id == user_id,
+    ).first()
+    # 对该条记录的status1进行更新
+    user.username=name
+    user.department=department
+    user.tel=tel
+    user.role_id=role_id
+    db.session.add(user)
+    name = user.username
+    try:
+        db.session.commit()
+        flash("你已修改员工{0}的信息".format(name))
+    except:
+        db.session.rollback()
+        flash("修改信息失败")
+        return render_template("404.html")
+
+    return redirect(url_for("home.usermanage"))
+
 # 查询详情页
 @home.route("/procedureinfos", methods=["POST"])
 @login_required
@@ -520,4 +648,17 @@ def procedureinfos():
         CarProcedureInfo.id == procedure_id,
     ).first()
     data = procedureinfos.jsonstr()
+    return jsonify(data)
+
+
+# 修改用户信息ajax
+@home.route("/alteruser", methods=["POST"])
+@login_required
+def alteruser():
+    data1 = json.loads(request.get_data())
+    user_id = data1["user_id"]
+    userinfos = User.query.filter(
+        User.id == user_id,
+    ).first()
+    data = userinfos.jsonstr()
     return jsonify(data)
