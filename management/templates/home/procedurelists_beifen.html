@@ -1,0 +1,304 @@
+{% extends 'home/homebase.html' %}
+
+{% block title %}我的流程{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/procedurelists.css") }}">
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="panel panel-primary">
+        <div class="panel-heading text-center">我的所有流程清单</div>
+        <table class="table table-striped table-bordered table-hover table-responsive text-left">
+            <tr class="info">
+                <td colspan="8">
+
+                    <form action="" method="post" class="form-inline col-md-12" >
+                        <filedset>
+                            <div class="form-group col-md-3">
+                                <label for="year">导出年份：</label>
+                                <select name="year" id="year" class="form-control" >
+                                    <option value="2020">2020</option>
+                                    <option value="2021">2021</option>
+                                    <option value="2022">2022</option>
+                                </select>
+                                <span class="" >年</span>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="year">导出月份：</label>
+                                <select name="month" id="month" class="form-control" >
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+
+                                </select>
+                                <span class="" >月份</span>
+                            </div>
+                        </filedset>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-default">导出</button>
+
+                            </div>
+                    </form>
+
+
+                </td>
+            </tr>
+            <tr>
+                <th>序号</th>
+                <th>发起时间</th>
+                <th>流程名称</th>
+                <th>申请车型</th>
+                <th>申请人</th>
+                <th>申请部门</th>
+                <th>流程状态</th>
+                <th>查看详情</th>
+            </tr>
+            {% if  my_procedure %}
+                {% for my_procedure in my_procedure %}
+
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ my_procedure.approval_time }}</td>
+                        <td>{{ my_procedure.procedure_name.name }}</td>
+                        <td>{{ my_procedure.cars.name }}</td>
+                        <td>{{ my_procedure.users.username }}</td>
+                        <td>{{ my_procedure.department }}</td>
+                        {% if my_procedure.status2==1 %}
+                            <td class="alert-success"> 已审批</td>
+                        {% elif my_procedure.status1==1 %}
+                            <td class="alert-warning">二级审批中</td>
+                        {% else %}
+                            <td class="alert-info">一级审批中</td>
+                        {% endif %}
+                        <td><a id="{{ my_procedure.id }}" class="query" href="" data-toggle="modal">查看流程详情</a></td>
+                    </tr>
+
+                {% endfor %}
+
+                <tr>
+                    <td></td>
+                </tr>
+            {% else %}
+                <tr class="text-center text-warning">
+                    <td colspan="8">您暂时还未创建相关流程</td>
+                </tr>
+            {% endif %}
+
+        </table>
+    </div>
+
+    <div class="container">
+        <div class="row ">
+
+            <div class="pagination col-md-12 ">
+                {{ macros.pagination_widget(pagination, '.procedurelists') }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 详细信息模态框（Modal） -->
+    <div>
+        <div class="modal fade " id="mymodal" tabindex="-1" role="dialog"
+             aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    {#                            模态框的头部#}
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"
+                                aria-hidden="true">&times;
+                        </button>
+                        <h4 class="modal-title" id="myModalLabel">详细信息</h4>
+                    </div>
+                    {#                        模态框的身体#}
+                    <div class="modal-body">
+                        {#                第一行 基本信息#}
+                        <div class="row">
+                            <div class="col-md-3 ">
+                                <label for="">流程编号: <span id="procedure_id"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">申请人: <span id="user_name"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">电话: <span id="tel"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">部门: <span id="department"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <hr>
+                        {#                第二行 用车信息#}
+                        <div class="row">
+                            <div class="col-md-3 ">
+                                <label for="">用车类型: <span id="car_name"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">申请人: <span id="user_name2"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">申请时间: <span id="approval_time"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">目的地: <span id="arrival_place"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <br>
+                        {#                 第三行 用车信息#}
+                        <div class="row">
+                            <div class="col-md-3 ">
+                                <label for="">预约开始时间: <span id="book_start_datetime"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">预约结束时间: <span id="book_end_datetime"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">实际开始时间: <span id="actual_start_datetime"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">实际结束时间: <span id="actual_end_datetime"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <br>
+                        {#                 第四行 用车信息#}
+                        <div class="row">
+                            <div class="col-md-3 ">
+                                <label for="">乘车人数: <span id="number"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">乘车名单: <span id="namelist"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">用车原因: <span id="reason"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">是否使用ETC: <span id="etc"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <br>
+                        {#                 第五行 用车信息#}
+                        <div class="row">
+                            <div class="col-md-3 ">
+                                <label for="">一级审批人: <span id="first_approval"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">审批状态: <span id="status1"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">二级审批人: <span id="second_approval"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-3 ">
+                                <label for="">审批状态: <span id="status2"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <br>
+
+
+                        {#                        模态框的底部#}
+                        <div class=" modal-footer">
+                            <button type="button" class="btn btn-default"
+                                    data-dismiss="modal">关闭
+                            </button>
+                            <!-- <button type="submit" class="btn btn-primary">提交</button> -->
+                        </div>
+                    </div>
+                    <!-- /.modal-content -->
+                </div>
+                <!-- /.modal -->
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {#    导出数据失败提示#}
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'error',//消息类型。error、info、success
+                    hideAfter: 3,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $(".query").click(function () {
+                var procedure_id = this.id
+
+                $.post(
+                    "{{ url_for("home.procedureinfos") }}",
+                    JSON.stringify({
+                        procedure_id: procedure_id,
+                    }),
+                    function (data) {
+                        $('#mymodal').modal("show")
+                        $("#procedure_id").text(data.id)
+                        $("#user_name").text(data.user_name)
+                        $("#user_name2").text(data.user_name)
+                        $("#tel").text(data.tel)
+                        $("#department").text(data.department)
+                        $("#car_name").text(data.car_name)
+                        $("#approval_time").text(data.approval_time)
+                        $("#arrival_place").text(data.arrival_place)
+                        $("#book_start_datetime").text(data.book_start_datetime)
+                        $("#book_end_datetime").text(data.book_end_datetime)
+                        $("#actual_start_datetime").text(data.actual_start_datetime)
+                        $("#actual_end_datetime").text(data.actual_end_datetime)
+                        $("#number").text(data.number)
+                        $("#namelist").text(data.namelist)
+                        $("#reason").text(data.reason)
+                        $("#etc").text(data.etc)
+                        $("#first_approval").text(data.first_approval)
+                        $("#status1").text(data.status1)
+                        $("#second_approval").text(data.second_approval)
+                        $("#status2").text(data.status2)
+                    }
+                )
+            })
+        });
+    </script>
+
+{% endblock %}
+
+
