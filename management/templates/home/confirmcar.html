@@ -63,7 +63,7 @@
 
                     {% endfor %}
                 {#                            模态框#}
-                <form method="post" action="confirmprocedure">
+                <form method="post" action="confirmcar">
                     {{ form.csrf_token() }}
                     <div class="modal fade" id="confirmmodal" tabindex="-1" role="dialog"
                          aria-labelledby="exampleModalLabel">
@@ -110,7 +110,7 @@
             <div class="row ">
 
                 <div class="pagination col-md-12 ">
-                    {{ macros.pagination_widget(pagination, '.confirmprocedure') }}
+                    {{ macros.pagination_widget(pagination, '.confirmcar') }}
                 </div>
             </div>
         </div>

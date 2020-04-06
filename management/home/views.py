@@ -1,10 +1,10 @@
 from flask import render_template, redirect, url_for, abort, flash, request, \
     current_app, make_response, g, session, Response, jsonify, json
-from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm, AddNewUser
+from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm, AddNewUser, PackageProcedureForm
 from flask_login import login_required, current_user, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_, or_, extract
-from ..models import Permission, Role, User, CarProcedureInfo, CarList, ProcedureList
+from ..models import Permission, Role, User, CarProcedureInfo, CarList, ProcedureList, PackageProcedureInfo
 from . import home
 from management import db, excel
 from datetime import datetime
@@ -24,17 +24,64 @@ def login():
             login_user(user, form.remember_me.data)
             next = request.args.get("next")
             if next is None or not next.startswith("/"):
-                next = url_for("home.index")
+                next = url_for("home.indexlist")
             return redirect(next)
         flash("用户名或者密码错误")
     return render_template('home/login.html', form=form)
 
 
 # 用户主页
-@home.route("/index", methods=["GET", "POST"])
+@home.route("/indexlist", methods=["GET", "POST"])
 @login_required
 @permission_required(Permission.APPLY)
-def index():
+def indexlist():
+    num = {}
+    # 第一个流程---用车流程的总数量和运行数量
+    p1num = CarProcedureInfo.query.filter(CarProcedureInfo.user_id == current_user.id).count()
+    p1numusing = CarProcedureInfo.query.filter(CarProcedureInfo.user_id == current_user.id,
+                                               CarProcedureInfo.status1 != 2,
+                                               CarProcedureInfo.status2 != 2,
+                                               CarProcedureInfo.actual_end_datetime == None).count()
+    # 第二个流程---快递流程的总数量和运行数量
+    p2num = PackageProcedureInfo.query.filter(PackageProcedureInfo.collect_person == current_user.username).count()
+    p2numusing = PackageProcedureInfo.query.filter(PackageProcedureInfo.collect_person == current_user.username,
+                                                   PackageProcedureInfo.status == "待寄出").count()
+    # 放一个字典，存放所有流程的总数量和正在使用的流程的数量，存放用车流程的数量
+    num["p1"] = p1num
+    num["p12"] = p1numusing
+    # 存放快递流程的数量
+    num["p2"] = p2num
+    num["p22"] = p2numusing
+    return render_template("home/indexlist.html", num=num)
+
+
+# 门卫确认流程主页
+@home.route("/confirmlist", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.APPLY)
+def confirmlist():
+    num = {}
+    # 第一个流程---用车流程的总数量和运行数量
+    p1num = CarProcedureInfo.query.filter(CarProcedureInfo.user_id == current_user.id).count()
+    p1numusing = CarProcedureInfo.query.filter(CarProcedureInfo.status2 == 1,
+                                               CarProcedureInfo.actual_end_datetime == None).count()
+    # 第二个流程---快递流程的总数量和运行数量
+    p2num = PackageProcedureInfo.query.filter(PackageProcedureInfo.collect_person == current_user.username).count()
+    p2numusing = PackageProcedureInfo.query.filter(PackageProcedureInfo.status == "待寄出").count()
+    # 放一个字典，存放所有流程的总数量和正在使用的流程的数量，存放用车流程的数量
+    num["p1"] = p1num
+    num["p12"] = p1numusing
+    # 存放快递流程的数量
+    num["p2"] = p2num
+    num["p22"] = p2numusing
+    return render_template("home/confirmlist.html", num=num)
+
+
+# 用车流程主页
+@home.route("/carindex", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.APPLY)
+def carindex():
     page = request.args.get("page", 1, type=int)
     keywords = request.args.get("keywords", "")
 
@@ -46,7 +93,26 @@ def index():
     ["FLASKY_PER_PAGE"], error_out=False)
     my_procedure = pagination.items
 
-    return render_template("home/index.html", my_procedure=my_procedure, pagination=pagination)
+    return render_template("home/carindex.html", my_procedure=my_procedure, pagination=pagination)
+
+
+# 快递流程主页
+@home.route("/packageindex", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.APPLY)
+def packageindex():
+    page = request.args.get("page", 1, type=int)
+    keywords = request.args.get("keywords", "")
+
+    pagination = PackageProcedureInfo.query.filter(PackageProcedureInfo.collect_person == current_user.username,
+                                                   PackageProcedureInfo.approval_time.contains(keywords),
+
+                                                   ).order_by(
+        PackageProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
+    ["FLASKY_PER_PAGE"], error_out=False)
+    my_procedure = pagination.items
+
+    return render_template("home/packageindex.html", my_procedure=my_procedure, pagination=pagination)
 
 
 # 发起流程申请页面
@@ -111,6 +177,77 @@ def procedureapproval1():
             abort(404)
     return render_template("home/procedureapproval1.html", current_time=datetime.utcnow(), form=form,
                            carusestatus=carusestatus)
+
+
+# 快递流程申请表
+@home.route("/procedureapproval2", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.APPLY)
+def procedureapproval2():
+    # 生成快递流程申请表单对象
+    form = PackageProcedureForm()
+    # 对表单的提交内容进行验证
+    if form.validate_on_submit():
+        logistics_company = request.form.get("logistics_company")
+        payment_method = request.form.get("payment_method")
+        collect_person = request.form.get("collect_person")
+        user = User.query.filter_by(username=collect_person).first()
+        if user:
+            collect_department = user.department
+            if payment_method == "寄付":
+                package_procedure_approval = PackageProcedureInfo(procedure_list_id=2,
+                                                                  procedure_name="快递申请表",
+                                                                  logistics_company=logistics_company,
+                                                                  num=form.num.data,
+                                                                  destination_company=form.destination_company.data,
+                                                                  package_name=form.package_name.data,
+                                                                  payment_method=payment_method,
+                                                                  approval_department=current_user.department,
+                                                                  approval_person=current_user.username,
+                                                                  collect_person=collect_person,
+                                                                  collect_department=collect_department,
+                                                                  status="待寄出"
+
+                                                                  )
+
+                db.session.add(package_procedure_approval)
+                try:
+                    db.session.commit()
+                    flash("您的快递流程已经处理成功，请到我的流程查看")
+                    return redirect(url_for("home.indexlist"))
+                except:
+                    db.session.rollback()
+                    flash("提交数据失败")
+                    abort(404)
+            elif payment_method == "到付":
+                package_procedure_approval = PackageProcedureInfo(procedure_list_id=2,
+                                                                  procedure_name="快递申请表",
+                                                                  logistics_company=logistics_company,
+                                                                  num=form.num.data,
+                                                                  destination_company=form.destination_company.data,
+                                                                  package_name=form.package_name.data,
+                                                                  payment_method=payment_method,
+                                                                  approval_department=current_user.department,
+                                                                  approval_person=current_user.username,
+                                                                  collect_person=collect_person,
+                                                                  collect_department=collect_department,
+                                                                  status="已收货",
+                                                                  confirm_time=datetime.now()
+
+                                                                  )
+
+                db.session.add(package_procedure_approval)
+                try:
+                    db.session.commit()
+                    flash("您的快递申请已经提交成功，请到我的流程查看")
+                    return redirect(url_for("home.indexlist"))
+                except:
+                    db.session.rollback()
+                    flash("提交数据失败")
+                    abort(404)
+        flash("您填写的寄件人/收件人不存在，请重新填写")
+    return render_template("home/procedureapproval2.html", current_time=datetime.utcnow(), form=form,
+                           )
 
 
 # 1级与2级待审批界面
@@ -280,10 +417,10 @@ def myapprovaledprocedure():
 
 
 # 确认车辆出入流程操作界面
-@home.route("/confirmprocedure", methods=["GET", "POST"])
+@home.route("/confirmcar", methods=["GET", "POST"])
 @login_required
 @permission_required(Permission.CONFIRM)
-def confirmprocedure():
+def confirmcar():
     page = request.args.get("page", 1, type=int)
     # keywords = request.args.get("keywords", "")
     form = MilesForm()
@@ -314,7 +451,23 @@ def confirmprocedure():
     ["FLASKY_PER_PAGE"], error_out=False)
     my_procedure = pagination.items
 
-    return render_template("home/confirmprocedure.html", my_procedure=my_procedure, pagination=pagination, form=form)
+    return render_template("home/confirmcar.html", my_procedure=my_procedure, pagination=pagination, form=form)
+
+
+# 确认快递邮寄出厂流程操作界面
+@home.route("/confirmpackage", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.CONFIRM)
+def confirmpackage():
+    page = request.args.get("page", 1, type=int)
+    pagination = PackageProcedureInfo.query.filter(
+        PackageProcedureInfo.status == "待寄出"
+
+    ).order_by(
+        PackageProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
+    ["FLASKY_PER_PAGE"], error_out=False)
+    my_procedure = pagination.items
+    return render_template("home/confirmpackage.html", my_procedure=my_procedure, pagination=pagination)
 
 
 # 确认车辆出厂
@@ -336,7 +489,7 @@ def confirmleave(procedure_id):
         flash("提交数据失败")
         return render_template("404.html")
 
-    return redirect(url_for("home.confirmprocedure"))
+    return redirect(url_for("home.confirmcar"))
 
 
 # 确认车辆入厂
@@ -360,7 +513,7 @@ def confirmarrive(procedure_id):
         flash("提交数据失败")
         return render_template("404.html")
 
-    return redirect(url_for("home.confirmprocedure"))
+    return redirect(url_for("home.confirmcar"))
 
 
 # # 提示响应成功地址
@@ -374,6 +527,27 @@ def confirmarrive(procedure_id):
 # @home.before_request
 # def homeg():
 #     g.ifok = "kong"
+# 确认快递已经邮寄出
+@home.route("/confircollect/<procedure_id>", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.CONFIRM)
+def confircollect(procedure_id):
+    a = PackageProcedureInfo.query.filter(
+        PackageProcedureInfo.id == procedure_id,
+    ).first()
+
+    a.status = "已寄出"
+    a.confirm_time = datetime.now()
+    db.session.add(a)
+    try:
+        db.session.commit()
+        flash("快递已经确认从公司邮寄出厂")
+    except:
+        db.session.rollback()
+        flash("提交数据失败")
+        return render_template("404.html")
+
+    return redirect(url_for("home.confirmpackage"))
 
 
 # 作废流程页
@@ -403,14 +577,62 @@ def rejectedprocedure():
     return render_template("home/rejectedprocedure.html", my_procedure=my_procedure, pagination=pagination)
 
 
-# 所有流程清单页
+# # 所有流程清导出界面单页
+# @home.route("/procedurelists", methods=["GET", "POST"])
+# @login_required
+# @permission_required(Permission.L2_APPROVAL)
+# def procedurelists():
+#     if request.method == "POST":
+#         year = request.form.get("year")
+#         month = request.form.get("month")
+#         arrays = CarProcedureInfo.query.filter(
+#             extract("year", CarProcedureInfo.actual_end_datetime) == year,
+#             extract("month", CarProcedureInfo.actual_end_datetime) == month
+#
+#         ).order_by(
+#             CarProcedureInfo.actual_end_datetime.asc()).all()
+#         if arrays:  # 如果有数据则导出
+#             column = [["序号", "流程编号", "结束日期", "申请人", "目的地", "用车原因", "车型", "是否用ETC", "公里数"]]
+#             i = 1
+#             for array in arrays:
+#                 list = array.jsonstr()  # 将每一行查询的数据转换成字典格式
+#                 array_content = [i,
+#                                  list["id"],
+#                                  list["actual_end_datetime"][0:10],
+#                                  list["user_name"],
+#                                  list["arrival_place"],
+#                                  list["reason"],
+#                                  list["car_name"],
+#                                  list["etc"],
+#                                  ]  # 将每一行的数据需要的先转换成字典，然后把相应内容导出。
+#                 column.append(array_content)
+#                 i += 1
+#                 filename = "用车情况按月统计表" + datetime.now().__str__()[0:10]
+#
+#             return excel.make_response_from_array(column, file_type="xls", file_name=filename)
+#         else:
+#             flash("该月份没有用车记录")
+#             return redirect(url_for("home.procedurelists"))
+#     if request.method == "GET":
+#         page = request.args.get("page", 1, type=int)
+#         keywords = request.args.get("keywords", "")
+#
+#         pagination = CarProcedureInfo.query.filter(CarProcedureInfo.user_id == current_user.id,
+#                                                    CarProcedureInfo.approval_time.contains(keywords),
+#                                                    ).order_by(
+#             CarProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
+#         ["FLASKY_PER_PAGE"], error_out=False)
+#         my_procedure = pagination.items
+#     return render_template("home/procedurelists.html", my_procedure=my_procedure, pagination=pagination)
+
+# 用车所有流程清导出界面单页
 @home.route("/procedurelists", methods=["GET", "POST"])
 @login_required
-# @permission_required(Permission.L2_APPROVAL)
+@permission_required(Permission.L2_APPROVAL)
 def procedurelists():
     if request.method == "POST":
-        year = request.form.get("year")
-        month = request.form.get("month")
+        year = request.form.get("year1")
+        month = request.form.get("month1")
         arrays = CarProcedureInfo.query.filter(
             extract("year", CarProcedureInfo.actual_end_datetime) == year,
             extract("month", CarProcedureInfo.actual_end_datetime) == month
@@ -440,16 +662,94 @@ def procedurelists():
             flash("该月份没有用车记录")
             return redirect(url_for("home.procedurelists"))
     if request.method == "GET":
-        page = request.args.get("page", 1, type=int)
-        keywords = request.args.get("keywords", "")
+        return render_template("home/procedurelists.html")
 
-        pagination = CarProcedureInfo.query.filter(CarProcedureInfo.user_id == current_user.id,
-                                                   CarProcedureInfo.approval_time.contains(keywords),
-                                                   ).order_by(
-            CarProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
-        ["FLASKY_PER_PAGE"], error_out=False)
-        my_procedure = pagination.items
-    return render_template("home/procedurelists.html", my_procedure=my_procedure, pagination=pagination)
+
+# 快递所有流程清导出界面单页
+@home.route("/packageprocedurelists", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.L2_APPROVAL)
+def packageprocedurelists():
+    if request.method == "POST":
+        year = request.form.get("year2")
+        month = request.form.get("month2")
+        arrays = PackageProcedureInfo.query.filter(
+            extract("year", PackageProcedureInfo.confirm_time) == year,
+            extract("month", PackageProcedureInfo.confirm_time) == month
+
+        ).order_by(
+            PackageProcedureInfo.approval_time.asc()).all()
+        if arrays:  # 如果有数据则导出
+            column = [
+                ["序号", "流程编号","申请时间", "申请人", "申请部门", "物流公司", "对方公司", "邮寄物品",
+                 "运单号", "付款方式","寄件人","寄件部门","确认邮寄/收货时间"]]
+            i = 1
+            for array in arrays:
+                list = array.jsonstr()  # 将每一行查询的数据转换成字典格式
+                array_content = [i,
+                                 list["id"],
+                                 list["approval_time"][0:10],
+                                 list["approval_person"],
+                                 list["approval_department"],
+                                 list["logistics_company"],
+                                 list["destination_company"],
+                                 list["package_name"],
+                                 list["num"],
+                                 list["payment_method"],
+                                 list["collect_person"],
+                                 list["collect_department"],
+                                 list["confirm_time"][0:10],
+                                 ]  # 将每一行的数据需要的先转换成字典，然后把相应内容导出。
+                column.append(array_content)
+                i += 1
+                filename = "快递情况按月统计表" + datetime.now().__str__()[0:10]
+
+            return excel.make_response_from_array(column, file_type="xls", file_name=filename)
+        else:
+            flash("该月份没有快递记录")
+            return redirect(url_for("home.procedurelists"))
+    if request.method == "GET":
+        return render_template("home/procedurelists.html")
+
+
+# # 所有流程清导出界面单页
+# @home.route("/procedurelists", methods=["GET", "POST"])
+# @login_required
+# @permission_required(Permission.L2_APPROVAL)
+# def procedurelists():
+#     if request.method == "GET":
+#         return render_template("home/procedurelists.html")
+#     else:
+#         data1 = json.loads(request.get_data())
+#         year = data1["year"]
+#         month = data1["month"]
+#         arrays = CarProcedureInfo.query.filter(
+#             extract("year", CarProcedureInfo.actual_end_datetime) == year,
+#             extract("month", CarProcedureInfo.actual_end_datetime) == month
+#
+#         ).order_by(
+#             CarProcedureInfo.actual_end_datetime.asc()).all()
+#         if arrays:  # 如果有数据则导出
+#             column = [["序号", "流程编号", "结束日期", "申请人", "目的地", "用车原因", "车型", "是否用ETC", "公里数"]]
+#             i = 1
+#             for array in arrays:
+#                 list = array.jsonstr()  # 将每一行查询的数据转换成字典格式
+#                 array_content = [i,
+#                                  list["id"],
+#                                  list["actual_end_datetime"][0:10],
+#                                  list["user_name"],
+#                                  list["arrival_place"],
+#                                  list["reason"],
+#                                  list["car_name"],
+#                                  list["etc"],
+#                                  ]  # 将每一行的数据需要的先转换成字典，然后把相应内容导出。
+#                 column.append(array_content)
+#                 i += 1
+#                 filename = "用车情况按月统计表" + datetime.now().__str__()[0:10]
+#             return excel.make_response_from_array(column, file_type="xls", file_name=filename)
+#         else:
+#             flash("该月份没有用车记录")
+#             return redirect("home/procedurelists.html")
 
 
 # 使用openpyxl导出方法，这个可以通过openpyxl对单元格的内容进行操作。
@@ -607,25 +907,26 @@ def addnewuser():
 
     return redirect(url_for("home.usermanage"))
 
+
 # 修改用户信息
 @home.route("/alterusersubmit", methods=["GET", "POST"])
 @login_required
 @permission_required(Permission.L2_APPROVAL)
 def alterusersubmit():
-    user_id=request.form.get("user_id")
-    name=request.form.get("altername")
-    department=request.form.get("alterdepartment")
-    tel=request.form.get("altertel")
-    role_id=request.form.get("alterroleid")
+    user_id = request.form.get("user_id")
+    name = request.form.get("altername")
+    department = request.form.get("alterdepartment")
+    tel = request.form.get("altertel")
+    role_id = request.form.get("alterroleid")
     # 根据流程id找到该条记录
     user = User.query.filter(
         User.id == user_id,
     ).first()
     # 对该条记录的status1进行更新
-    user.username=name
-    user.department=department
-    user.tel=tel
-    user.role_id=role_id
+    user.username = name
+    user.department = department
+    user.tel = tel
+    user.role_id = role_id
     db.session.add(user)
     name = user.username
     try:
@@ -637,6 +938,7 @@ def alterusersubmit():
         return render_template("404.html")
 
     return redirect(url_for("home.usermanage"))
+
 
 # 查询详情页
 @home.route("/procedureinfos", methods=["POST"])

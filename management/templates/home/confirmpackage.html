@@ -1,0 +1,101 @@
+{% extends 'home/homebase.html' %}
+
+{% block title %}确认快递{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/confirmprocedure.css") }}">
+
+{% endblock %}
+
+{% block page_content %}
+
+    <div class="panel panel-primary">
+        <div class="panel-heading text-center">快递邮寄确认流程</div>
+        <table class="table table-striped table-bordered table-hover table-responsive text-left">
+            <tr class="info">
+
+            </tr>
+            <tr>
+                <th>序号</th>
+                <th>快递时间</th>
+
+                <th>对方公司名称</th>
+                <th>物流公司</th>
+
+                <th>邮寄物品</th>
+                <th>寄件/收件人</th>
+                <th>部门</th>
+                <th>运单号</th>
+
+                <th>确认邮寄</th>
+            </tr>
+            <tr>
+                {% if  my_procedure %}
+                    {% for my_procedure in my_procedure %}
+
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ my_procedure.approval_time }}</td>
+
+                        <td>{{ my_procedure.destination_company }}</td>
+                        <td>{{ my_procedure.logistics_company }}</td>
+
+                        <td>{{ my_procedure.package_name }}</td>
+                        <td>{{ my_procedure.collect_person }}</td>
+                        <td>{{ my_procedure.collect_department }}</td>
+                        <td>{{ my_procedure.num }}</td>
+
+                        <td>
+                            <a class="aok"
+                               href="{{ url_for("home.confircollect",procedure_id=my_procedure.id) }}">
+                                <button class="btn btn-primary">确认</button>
+                            </a>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    {% else %}
+                    <tr class="text-center text-warning">
+                        <td colspan="8">暂时还没有需要您审批的流程</td>
+                    </tr>
+                {% endif %}
+
+        </table>
+    </div>
+    {% if  my_procedure %}
+        <div class="container">
+            <div class="row ">
+
+                <div class="pagination col-md-12 ">
+                    {{ macros.pagination_widget(pagination, '.confirmcar') }}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+    {#    插入成功提示#}
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'success',//消息类型。error、info、success
+                    hideAfter: 3,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
+
+{% endblock %}

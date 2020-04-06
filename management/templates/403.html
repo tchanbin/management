@@ -16,6 +16,27 @@
 {% endblock %}
 
 
+{% block scripts %}
+    {{ super() }}
+    {#   插入成功提示#}
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'error',//消息类型。error、info、success
+                    hideAfter: 3,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
 
+{% endblock %}
 
 

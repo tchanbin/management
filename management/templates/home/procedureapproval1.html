@@ -28,7 +28,7 @@
                             </div>
                             <div class="form-group col-md-3 form-inline ">
                                 <label for="" class="starinfo">电话：</label>
-                                {{ form.tel  (value=current_user.tel) }}<br>
+                                {{ form.tel  (value=current_user.tel,class="form-control") }}<br>
                                 {#                                <span class="danger starinfo">*</span>#}
                                 {% if form.tel.errors %}
                                     {% for err in form.tel.errors %}
@@ -126,7 +126,7 @@
 
                             </div>
                             <div class="form-group col-md-2 form-inline ">
-                                <label for="ifetc">是否需要ETC：</label>
+                                <label for="ifetc" class="starinfo">ETC：</label>
                                 {{ form.ifetc(id="ifetc") }}
                                 {% if form.ifetc.errors %}
                                     {% for err in form.ifetc.errors %}

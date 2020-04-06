@@ -130,6 +130,45 @@ class CarProcedureForm(FlaskForm):
     )
 
 
+# 用车流程申请表单
+class PackageProcedureForm(FlaskForm):
+    num = IntegerField(
+        label="运单号",
+        validators=[DataRequired("运单号不能为空")],
+        render_kw={"required": False}
+
+    )
+    destination_company = StringField(
+        label='对方公司名称',
+        validators=[DataRequired("对方公司名称不能为空")],
+        render_kw={"required": False}
+
+    )
+    package_name = StringField(
+        label='快递物品名称',
+        validators=[DataRequired("快递物品名称不能为空")],
+        render_kw={"required": False}
+
+    )
+    collect_person = StringField(
+        label='寄/收件人',
+        validators=[DataRequired("寄/收件人不能为空")],
+        render_kw={"required": False}
+
+    )
+    tel = StringField(
+        label='联系方式',
+        validators=[DataRequired("电话不能为空"), Length(11, 11, "电话必须是11位号码")],
+        render_kw={"required": False}
+
+    )
+    submit = SubmitField(
+        label="提交申请",
+
+    )
+
+
+# 保安确认公里数
 class MilesForm(FlaskForm):
     miles = IntegerField(
         label='最终公里数',
@@ -149,6 +188,7 @@ class MilesForm(FlaskForm):
 
     )
 
+
 # 添加新用户
 class AddNewUser(FlaskForm):
     name = StringField(
@@ -158,7 +198,7 @@ class AddNewUser(FlaskForm):
 
     )
 
-    tel= StringField(
+    tel = StringField(
         label='电话',
         render_kw={"required": False}
 

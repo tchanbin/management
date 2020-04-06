@@ -198,3 +198,40 @@ class CarProcedureInfo(db.Model):
             "miles": self.miles,
         }
         return jsonstr
+
+#
+# 快递流程信息表
+class PackageProcedureInfo(db.Model):
+    __tablename__ = 'package_procedure_infos'
+    id = db.Column(db.Integer, primary_key=True)
+    procedure_list_id = db.Column(db.Integer)
+    procedure_name = db.Column(db.String(15))
+    logistics_company = db.Column(db.String(50))
+    num = db.Column(db.String(50))
+    destination_company = db.Column(db.String(100))
+    package_name = db.Column(db.String(50))
+    payment_method = db.Column(db.String(15))
+    approval_person = db.Column(db.String(15))
+    approval_department = db.Column(db.String(15))
+    collect_person=db.Column(db.String(15))
+    collect_department = db.Column(db.String(15))
+    status = db.Column(db.String(15))
+    approval_time = db.Column(db.DateTime(), default=datetime.now)
+    confirm_time = db.Column(db.DateTime())
+
+    def jsonstr(self):
+        jsonstr = {
+            "id": self.id,
+            "logistics_company": self.logistics_company,
+            "num": self.num,
+            "destination_company": self.destination_company,
+            "package_name": self.package_name,
+            "payment_method": self.payment_method,
+            "approval_person": self.approval_person,
+            "approval_department": self.approval_department,
+            "collect_person": self.collect_person,
+            "collect_department": self.collect_department,
+            "approval_time": self.approval_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "confirm_time": self.confirm_time.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        return jsonstr

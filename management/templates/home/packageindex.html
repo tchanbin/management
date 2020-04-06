@@ -1,6 +1,6 @@
 {% extends 'home/homebase.html' %}
 
-{% block title %}我的流程{% endblock %}
+{% block title %}我的快递流程{% endblock %}
 
 {% block styles %}
     {{ super() }}
@@ -10,7 +10,7 @@
 
 {% block page_content %}
     <div class="panel panel-primary">
-        <div class="panel-heading text-center">我的流程</div>
+        <div class="panel-heading text-center">我的快递流程</div>
         <div class="container info" style="margin:5px">
             <form action="" method="get" class="form-inline">
                 <div class="form-group">
@@ -29,13 +29,17 @@
             <thead>
             <tr>
                 <th>序号</th>
-                <th>发起时间</th>
+                <th>快递时间</th>
                 <th>流程名称</th>
-                <th>申请车型</th>
-                <th>申请人</th>
-                <th>申请部门</th>
+                <th>对方公司名称</th>
+                <th>物流公司</th>
+                <th>邮寄方式</th>
+                <th>邮寄物品</th>
+                <th>寄件/收件人</th>
+                <th>部门</th>
+                <th>运单号</th>
+
                 <th>流程状态</th>
-                <th>查看详情</th>
             </tr>
             </thead>
             <tbody>
@@ -44,18 +48,21 @@
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ my_procedure.approval_time }}</td>
-                        <td>{{ my_procedure.procedure_name.name }}</td>
-                        <td>{{ my_procedure.cars.name }}</td>
-                        <td>{{ my_procedure.users.username }}</td>
-                        <td>{{ my_procedure.department }}</td>
-                        {% if my_procedure.status2==1 %}
-                            <td class="alert-success"> 已审批</td>
-                        {% elif my_procedure.status1==1 %}
-                            <td class="alert-warning">二级审批中</td>
+                        <td>{{ my_procedure.procedure_name }}</td>
+                        <td>{{ my_procedure.destination_company }}</td>
+                        <td>{{ my_procedure.logistics_company }}</td>
+                        <td>{{ my_procedure.payment_method }}</td>
+                        <td>{{ my_procedure.package_name }}</td>
+                        <td>{{ my_procedure.collect_person }}</td>
+                        <td>{{ my_procedure.collect_department }}</td>
+                        <td>{{ my_procedure.num }}</td>
+                        {% if my_procedure.status=="待寄出" %}
+                            <td class="warning">{{ my_procedure.status }}</td>
                         {% else %}
-                            <td class="alert-info">一级审批中</td>
+                            <td class="success">{{ my_procedure.status }}</td>
                         {% endif %}
-                        <td><a id="{{ my_procedure.id }}" class="query" href="" data-toggle="modal">查看流程详情</a></td>
+
+
                     </tr>
                 {% endfor %}
                 <tr>
@@ -74,7 +81,7 @@
         <div class="row ">
 
             <div class="pagination col-md-12 ">
-                {{ macros.pagination_widget(pagination, '.index') }}
+                {{ macros.pagination_widget(pagination, '.carindex') }}
             </div>
         </div>
     </div>

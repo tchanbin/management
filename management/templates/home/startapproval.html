@@ -41,7 +41,7 @@
                         <td>{{ loop.index }}</td>
                         <td>{{ procedure_list.name }}</td>
                         <td>
-                            <a href="{{ url_for("home.procedureapproval1") }}">发起申请</a>
+                            <a href="{{ url_for("home.procedureapproval{0}".format(procedure_list.id)) }}">发起申请</a>
                         </td>
                     </tr>
 

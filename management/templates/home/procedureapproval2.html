@@ -1,0 +1,189 @@
+{% extends 'home/homebase.html' %}
+
+{% block title %}快递流程申请表{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/startprocedure.css") }}">
+
+{% endblock %}
+{% block page_content %}
+
+    <div class="panel panel-primary ">
+        <div class="panel-heading text-center">快递流程申请表</div>
+        <div class="container">
+            <div class="row">
+                <form action="" id="procedureapproval" method="post">
+                    {{ form.csrf_token() }}
+                    <filedset>
+                        {#                    第一行 基本信息#}
+                        <legend class="media ">基本信息</legend>
+                        <div class="row">
+                            <div class="form-group col-md-3">
+                                <label for="">用户姓名：</label>
+                                <label for="">{{ current_user.username }}</label>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="">部门：</label>
+                                <label for="">{{ current_user.department }}</label>
+                            </div>
+                            <div class="form-group col-md-3 form-inline ">
+                                <label for="" class="starinfo">电话：</label>
+                                {{ form.tel  (value=current_user.tel,class="form-control") }}<br>
+                                {#                                <span class="danger starinfo">*</span>#}
+                                {% if form.tel.errors %}
+                                    {% for err in form.tel.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="">发起日期：</label>
+                                {{ moment(current_time).format('LL') }}
+
+                            </div>
+                        </div>
+
+                    </filedset>
+                    <filedset>
+                        {#                    第二行 流程信息#}
+                        <legend class="media">流程信息</legend>
+                        <div class="row">
+                            <div class="form-group col-md-4 form-inline">
+                                <label for="" class="starinfo">物流公司：</label>
+                                <select name="logistics_company" id="logistics_company" class="form-control">
+                                    <option value="顺丰">顺丰</option>
+                                    <option value="德邦">德邦</option>
+                                    <option value="顺利达">顺利达</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="num" class="starinfo">运 单 号 ：</label>
+                                {{ form.num(id="num",class="form-control") }}<br>
+                                {% if form.num.errors %}
+                                    {% for err in form.num.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="package_name" class="starinfo">邮寄物品：</label>
+                                {{ form.package_name(id="package_name",class="form-control") }}<br>
+                                {% if form.package_name.errors %}
+                                    {% for err in form.package_name.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                        </div>
+                        {#                    第三行 流程信息#}
+                        <div class="row">
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="destination_company" class="starinfo">对方公司：</label>
+                                {{ form.destination_company(id="destination_company",class="form-control") }}<br>
+                                {% if form.destination_company.errors %}
+                                    {% for err in form.destination_company.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            {#                        判断付款方式，role_id=2则到付，其他寄付#}
+                            {% if current_user.role_id==2 %}
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="payment_method" class="starinfo">付款方式：</label>
+                                    <input type="text" class="form-control" readonly name="payment_method" value="到付">
+                                </div>
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="collect_person" class="starinfo">收 件 人 ：</label>
+                                    {{ form.collect_person(id="collect_person",class="form-control") }}<br>
+                                    {% if form.collect_person.errors %}
+                                        {% for err in form.collect_person.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                            {% else %}
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="payment_method" class="starinfo">付款方式：</label>
+                                    <input type="text" class="form-control" readonly name="payment_method" value="寄付">
+                                </div>
+                                     <div class="form-group col-md-4 form-inline ">
+                                    <label for="collect_person" class="starinfo">寄 件 人 ：</label>
+                                    {{ form.collect_person(id="collect_person",class="form-control",value=current_user.username) }}<br>
+                                    {% if form.collect_person.errors %}
+                                        {% for err in form.collect_person.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="row text-center btn-block">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </filedset>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $("#bookstartdatetime").datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:ss',
+            language: 'zh-CN',
+            autoclose: true,
+            startView: 2,
+            todayBtn: true,
+
+        }).on('changeDate', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var begintime = $("#bookstartdatetime").val();
+            $("#bookenddatetime").datetimepicker('setStartDate', begintime);
+            $("#bookenddatetime").val("");
+        });
+        $("#bookenddatetime").datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:ss',
+            language: 'zh-CN',
+            autoclose: true,
+            startView: 2,
+            todayBtn: true,
+
+        }).on('changeDate', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var endtime = $("#bookenddatetime").val();
+            $("#bookstartdatetime").datetimepicker('setEndDate', endtime);
+        });
+    </script>
+    {#   插入成功提示#}
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'error',//消息类型。error、info、success
+                    hideAfter: 3,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
+
+{% endblock %}

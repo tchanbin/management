@@ -58,3 +58,22 @@ def fake_car_procedure_infos(count=10):
             i += 1
         except IntegrityError:
             db.session.rollback()
+
+def init_users(count=10):
+    fake = Faker(locale='zh_CN')
+    i = 0
+    while i < count:
+
+        u = User(username=fake.user_name(),
+                 department="初始化",
+                 tel=123456789,
+                 password="123456",
+                 role_id=1,
+                 status="正常",
+                 )
+        db.session.add(u)
+        try:
+            db.session.commit()
+            i += 1
+        except IntegrityError:
+            db.session.rollback()
