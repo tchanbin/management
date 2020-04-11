@@ -3,8 +3,6 @@ FROM python:3.7.5
 ENV FLASK_APP manage.py
 ENV FLASK_CONFIG production
 
-
-
 COPY requirements.txt requirements.txt
 RUN python3 -m pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple some-package
 
