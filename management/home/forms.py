@@ -130,7 +130,7 @@ class CarProcedureForm(FlaskForm):
     )
 
 
-# 用车流程申请表单
+# 快递流程申请表单
 class PackageProcedureForm(FlaskForm):
     num = IntegerField(
         label="运单号",
@@ -194,6 +194,14 @@ class AddNewUser(FlaskForm):
     name = StringField(
         label='姓名',
         validators=[DataRequired("姓名不能为空")],
+        render_kw={"required": False}
+
+    )
+    department = SelectField(
+        label='部门',
+        validators=[DataRequired("部门不能为空")],
+        coerce=int,
+        choices=[],
         render_kw={"required": False}
 
     )

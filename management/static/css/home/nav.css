@@ -12,3 +12,18 @@
     color: #666666;
     font-size: 16px;
 }
+
+.two_bar {
+    list-style-type: none;
+    display: none;
+    text-align: center;
+    font-size: 14px;
+    background-color: white;
+    color: black;
+    border-bottom: 1px solid #ffffff;
+    border-radius: 4px;
+    line-height: 35px;
+    overflow: hidden;
+
+
+}

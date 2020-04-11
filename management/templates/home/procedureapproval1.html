@@ -18,11 +18,15 @@
                     <filedset>
                         <legend class="media ">基本信息</legend>
                         <div class="row">
-                            <div class="form-group col-md-3">
+                            <div class="form-group col-md-2">
                                 <label for="">用户姓名：</label>
                                 <label for="">{{ current_user.username }}</label>
                             </div>
-                            <div class="form-group col-md-3">
+                            <div class="form-group col-md-2">
+                                <label for="">公司：</label>
+                                <label for="">{{ current_user.company }}</label>
+                            </div>
+                            <div class="form-group col-md-2">
                                 <label for="">部门：</label>
                                 <label for="">{{ current_user.department }}</label>
                             </div>

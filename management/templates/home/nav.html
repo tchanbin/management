@@ -1,29 +1,34 @@
 <div id="nav">
     <ul class="nav nav-pills nav-stacked text-center">
-        <li id="navtag1"><a id="navtag1a" href="{{ url_for("home.resetpwd") }}">修改密码</a></li>
-        <li id="navtag2"><a id="navtag2a" href="{{ url_for("home.indexlist") }}">我的流程</a></li>
-        <li id="navtag3"><a id="navtag3a" href="{{ url_for("home.startapproval") }}">发起流程</a></li>
-        <li id="navtag4"><a id="navtag4a" href="{{ url_for("home.L1L2approval") }}">待审流程</a></li>
-        <li id="navtag5"><a id="navtag5a" href="{{ url_for("home.myapprovaledprocedure") }}">已审流程</a></li>
-        <li id="navtag6"><a id="navtag6a" href="{{ url_for("home.confirmlist") }}">确认流程</a></li>
-        <li id="navtag7"><a id="navtag7a" href="{{ url_for("home.rejectedprocedure") }}">作废流程</a></li>
-        <li id="navtag8"><a id="navtag8a" href="{{ url_for("home.procedurelists") }}">流程清单</a></li>
+        <li id="navtag1"><a id="navtag1a"  class="one_bar" href="{{ url_for("home.resetpwd") }}"><span
+                class="glyphicon glyphicon-edit"></span>&nbsp;&nbsp;修改密码</a></li>
+        <li id="navtag2"><a  class="one_bar" id="navtag2a" href="{{ url_for("home.indexlist") }}"><span
+                class="glyphicon glyphicon-tags"></span>&nbsp;&nbsp;我的流程</a></li>
+        <li id="navtag3" ><a  class="one_bar" id="navtag3a" href="{{ url_for("home.startapproval") }}"><span
+                class="glyphicon glyphicon-share"></span>&nbsp;&nbsp;发起流程</a></li>
+        <li id="navtag4"><a  class="one_bar" id="navtag4a" href="{{ url_for("home.L1L2approval") }}"><span
+                class="glyphicon glyphicon-book"></span>&nbsp;&nbsp;待审流程</a></li>
+        <li id="navtag5" ><a  class="one_bar"id="navtag5a" href="{{ url_for("home.myapprovaledprocedure") }}"><span
+                class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;已审流程</a></li>
+        <li id="navtag6" ><a  class="one_bar" id="navtag6a" href="{{ url_for("home.confirmlist") }}"><span
+                class="glyphicon glyphicon-tasks"></span>&nbsp;&nbsp;确认流程</a></li>
+        <li id="navtag7" ><a  class="one_bar" id="navtag7a" href="{{ url_for("home.rejectedprocedure") }}"><span
+                class="glyphicon glyphicon-trash"></span>&nbsp;&nbsp;作废流程</a></li>
+        <li id="navtag8" ><a class="one_bar" id="navtag8a" href="{{ url_for("home.procedurelists") }}"><span class="
+glyphicon glyphicon-list-alt"></span>&nbsp;&nbsp;流程清单</a></li>
         {% if current_user.can(Permission.L2_APPROVAL) %}
-            <li id="navtag9"><a id="navtag9a" href="{{ url_for("home.usermanage") }}">用户管理</a></li>
+            <li id="navtag9">
+                <a id="navtag9a" class="one_bar" href="{{ url_for("home.usermanage") }}"><span class="glyphicon glyphicon-cog"></span>&nbsp;网站管理</a>
+{#                <ul id="navtag9b" class="two_bar">#}
+{#                    <li><a href="{{ url_for("home.usermanage") }}"><span class="glyphicon glyphicon-user"></span>&nbsp;用户管理</a>#}
+{#                    </li>#}
+{#                    <li><a href=""><span class="glyphicon glyphicon-th-large"></span>&nbsp;部门管理</a></li>#}
+{#                </ul>#}
+
+            </li>
         {% endif %}
 
 
     </ul>
 </div>
 
-{##}
-{#<script type='text/javascript'>#}
-{#    $(document).ready(function () {// ready 事件#}
-{#        $("li").each(function (index) {//遍历对象  each 遍历函数 对li进行遍历，第一个li对应index0 ，每个都执行function（index）例如第一个function（0），index为形参， index从0开始#}
-{#            $(this).click(function () {//点击触发事件#}
-{#                $("li").removeClass("active");//删除当前元素的样式#}
-{#                $("li").eq(index).addClass("active");//添加当前元素的样式，eq从0开始找到li标签的index的位置。#}
-{#            });#}
-{#        });#}
-{#    });#}
-{#</script>#}

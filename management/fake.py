@@ -66,10 +66,11 @@ def init_users(count=10):
 
         u = User(username=fake.user_name(),
                  department="初始化",
-                 tel=123456789,
+                 tel=12345678910,
                  password="123456",
                  role_id=1,
                  status="正常",
+                 company="国之鼎"
                  )
         db.session.add(u)
         try:

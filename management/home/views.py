@@ -4,7 +4,7 @@ from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm, AddNewUser,
 from flask_login import login_required, current_user, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_, or_, extract
-from ..models import Permission, Role, User, CarProcedureInfo, CarList, ProcedureList, PackageProcedureInfo
+from ..models import Permission, Role, User, CarProcedureInfo, CarList, ProcedureList, PackageProcedureInfo,CompanyDepartment
 from . import home
 from management import db, excel
 from datetime import datetime
@@ -64,9 +64,10 @@ def confirmlist():
     # 第一个流程---用车流程的总数量和运行数量
     p1num = CarProcedureInfo.query.filter(CarProcedureInfo.user_id == current_user.id).count()
     p1numusing = CarProcedureInfo.query.filter(CarProcedureInfo.status2 == 1,
+                                               CarProcedureInfo.company == current_user.company,
                                                CarProcedureInfo.actual_end_datetime == None).count()
     # 第二个流程---快递流程的总数量和运行数量
-    p2num = PackageProcedureInfo.query.filter(PackageProcedureInfo.collect_person == current_user.username).count()
+    p2num = PackageProcedureInfo.query.filter(PackageProcedureInfo.collect_person == current_user.username ).count()
     p2numusing = PackageProcedureInfo.query.filter(PackageProcedureInfo.status == "待寄出").count()
     # 放一个字典，存放所有流程的总数量和正在使用的流程的数量，存放用车流程的数量
     num["p1"] = p1num
@@ -141,11 +142,13 @@ def procedureapproval1():
     form = CarProcedureForm()
 
     # 给车名字的下拉列表找到车型
-    form.carname.choices = [(c.id, c.name) for c in CarList.query.all()]
+    form.carname.choices = [(c.id, c.name) for c in CarList.query.filter_by(company=current_user.company)]
     # 查找到所有二级审批通过的车的申请信息
     carusestatus = CarProcedureInfo.query.filter(
         CarProcedureInfo.status2 == 1,
+        CarProcedureInfo.company == current_user.company,
         CarProcedureInfo.actual_end_datetime == None,
+
     ).order_by(
         CarProcedureInfo.book_start_datetime).all()
     # 对表单的提交内容进行验证
@@ -163,6 +166,7 @@ def procedureapproval1():
                                                   etc=form.ifetc.data,
                                                   status1=0,
                                                   status2=0,
+                                                  company=current_user.company
 
                                                   )
 
@@ -170,7 +174,7 @@ def procedureapproval1():
         try:
             db.session.commit()
             flash("您的用车申请已经提交成功，请到我的流程查看")
-            return redirect(url_for("home.index"))
+            return redirect(url_for("home.indexlist"))
         except:
             db.session.rollback()
             flash("提交数据失败")
@@ -261,6 +265,7 @@ def L1L2approval():
         pagination = CarProcedureInfo.query.filter(CarProcedureInfo.department == current_user.department,
                                                    CarProcedureInfo.approval_time.contains(keywords),
                                                    CarProcedureInfo.status1 == 0,
+                                                   CarProcedureInfo.company == current_user.company,
 
                                                    ).order_by(
             CarProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
@@ -269,6 +274,7 @@ def L1L2approval():
     else:
         pagination = CarProcedureInfo.query.filter(and_(
             CarProcedureInfo.approval_time.contains(keywords),
+            CarProcedureInfo.company == current_user.company,
             CarProcedureInfo.status1 != 2,
             CarProcedureInfo.status2 != 2,
             or_(CarProcedureInfo.status1 == 0,
@@ -429,6 +435,7 @@ def confirmcar():
         procedure_id = form.procedure_id.data
         a = CarProcedureInfo.query.filter(
             CarProcedureInfo.id == procedure_id,
+
         ).first()
         a.miles = miles
         a.actual_end_datetime = datetime.now()
@@ -444,7 +451,8 @@ def confirmcar():
     pagination = CarProcedureInfo.query.filter(
         # CarProcedureInfo.approval_time.contains(keywords),
         CarProcedureInfo.status2 == 1,
-        CarProcedureInfo.actual_end_datetime == None
+        CarProcedureInfo.company == current_user.company,
+        CarProcedureInfo.actual_end_datetime == None,
 
     ).order_by(
         CarProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
@@ -567,7 +575,8 @@ def rejectedprocedure():
         or_(CarProcedureInfo.user_id == current_user.id,
             CarProcedureInfo.first_approval == current_user.id,
             CarProcedureInfo.second_approval == current_user.id
-            )
+            ),
+        CarProcedureInfo.company == current_user.company,
 
     ).order_by(
         CarProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
@@ -635,12 +644,13 @@ def procedurelists():
         month = request.form.get("month1")
         arrays = CarProcedureInfo.query.filter(
             extract("year", CarProcedureInfo.actual_end_datetime) == year,
-            extract("month", CarProcedureInfo.actual_end_datetime) == month
+            extract("month", CarProcedureInfo.actual_end_datetime) == month,
+            CarProcedureInfo.company == current_user.company,
 
         ).order_by(
             CarProcedureInfo.actual_end_datetime.asc()).all()
         if arrays:  # 如果有数据则导出
-            column = [["序号", "流程编号", "结束日期", "申请人", "目的地", "用车原因", "车型", "是否用ETC", "公里数"]]
+            column = [["序号", "流程编号", "结束日期", "申请人", "目的地", "用车原因", "车型", "是否用ETC", "公里数","公司"]]
             i = 1
             for array in arrays:
                 list = array.jsonstr()  # 将每一行查询的数据转换成字典格式
@@ -652,6 +662,8 @@ def procedurelists():
                                  list["reason"],
                                  list["car_name"],
                                  list["etc"],
+                                 list["miles"],
+                                 list["company"],
                                  ]  # 将每一行的数据需要的先转换成字典，然后把相应内容导出。
                 column.append(array_content)
                 i += 1
@@ -681,8 +693,8 @@ def packageprocedurelists():
             PackageProcedureInfo.approval_time.asc()).all()
         if arrays:  # 如果有数据则导出
             column = [
-                ["序号", "流程编号","申请时间", "申请人", "申请部门", "物流公司", "对方公司", "邮寄物品",
-                 "运单号", "付款方式","寄件人","寄件部门","确认邮寄/收货时间"]]
+                ["序号", "流程编号", "申请时间", "申请人", "申请部门", "物流公司", "对方公司", "邮寄物品",
+                 "运单号", "付款方式", "寄件人", "寄件部门", "确认邮寄/收货时间"]]
             i = 1
             for array in arrays:
                 list = array.jsonstr()  # 将每一行查询的数据转换成字典格式
@@ -816,10 +828,12 @@ def resetpwd():
 @permission_required(Permission.L2_APPROVAL)
 def usermanage():
     form = AddNewUser()
+    form.department.choices = [(c.id, c.department) for c in CompanyDepartment.query.filter_by(company=current_user.company)]
     page = request.args.get("page", 1, type=int)
     keywords = request.args.get("keywords", "")
     pagination = User.query.filter(User.username.contains(keywords),
                                    User.status == "正常",
+                                   User.company == current_user.company,
                                    ).order_by(
         User.id.desc()).paginate(page, per_page=current_app.config
     ["FLASKY_PER_PAGE"], error_out=False)
@@ -893,7 +907,8 @@ def addnewuser():
                        role_id=form.roleid.data,
                        tel=form.tel.data,
                        password="123456",
-                       status="正常"
+                       status="正常",
+                       company=current_user.company
                        )
 
         db.session.add(newuser)
@@ -902,7 +917,7 @@ def addnewuser():
             flash("您已添加新员工{0}，密码为123456".format(name))
         except:
             db.session.rollback()
-            flash("添加失败")
+            flash("用户已存在，添加失败")
             return render_template("404.html")
 
     return redirect(url_for("home.usermanage"))

@@ -52,6 +52,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
     department = db.Column(db.String(64))
+    company = db.Column(db.String(64))
     tel = db.Column(db.String(15))
     password_hash = db.Column(db.String(128))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
@@ -119,6 +120,14 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+# 公司部门表
+class CompanyDepartment(db.Model):
+    __tablename__ = 'company_departments'
+    id = db.Column(db.Integer, primary_key=True)
+    company = db.Column(db.String(20))
+    department = db.Column(db.String(20))
+
+
 # 流程清单表
 class ProcedureList(db.Model):
     __tablename__ = 'procedure_lists'
@@ -133,6 +142,7 @@ class CarList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(25), unique=True)
     car_status = db.Column(db.String(10))
+    company = db.Column(db.String(10))
     car_procedure_infos = db.relationship('CarProcedureInfo', backref='cars', lazy='dynamic')
 
 
@@ -169,7 +179,7 @@ class CarProcedureInfo(db.Model):
     car_procedure_infos_confirm = db.relationship('User', foreign_keys=[confirmer],
                                                   backref="car_procedure_infos_confirm", single_parent=True)
     miles = db.Column(db.Integer)
-
+    company = db.Column(db.String(10))
     def jsonstr(self):
         jsonstr = {
             "id": self.id,
@@ -196,8 +206,10 @@ class CarProcedureInfo(db.Model):
             "status2": "二级审批中" if self.status2 == 0 else "审批通过" if self.status2 == 1 else "二级审批被拒绝",
             "confirmer": self.car_procedure_infos_confirm.username if self.confirmer else "",
             "miles": self.miles,
+            "company":self.company
         }
         return jsonstr
+
 
 #
 # 快递流程信息表
@@ -213,7 +225,7 @@ class PackageProcedureInfo(db.Model):
     payment_method = db.Column(db.String(15))
     approval_person = db.Column(db.String(15))
     approval_department = db.Column(db.String(15))
-    collect_person=db.Column(db.String(15))
+    collect_person = db.Column(db.String(15))
     collect_department = db.Column(db.String(15))
     status = db.Column(db.String(15))
     approval_time = db.Column(db.DateTime(), default=datetime.now)

@@ -26,8 +26,9 @@
     <script type="text/javascript" src="{{ url_for("static",filename="js/messenger-theme-flat.js") }}"></script>
     <script type="text/javascript" src="{{ url_for("static",filename="js/jquery.resizableColumns.min.js") }}"></script>
     <script type="text/javascript" src="{{ url_for("static",filename="js/bootstrap-table.min.js") }}"></script>
-    <script type="text/javascript" src="{{ url_for("static",filename="js/bootstrap-table-resizable.min.js") }}"></script>
-
+    <script type="text/javascript"
+            src="{{ url_for("static",filename="js/bootstrap-table-resizable.min.js") }}"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/home/navactive.js") }}"></script>
 
     {{ moment.include_moment(local_js=url_for('static',filename='js/moment-with-locales.min.js')) }}
     {{ moment.lang('zh-CN') }}
@@ -48,9 +49,10 @@
                 {#                        <span class="icon-bar"></span>#}
                 {#                    </button>#}
 
-                <img id="logo" src="{{ url_for("static",filename="img/logo.jpg") }}" alt="logo" width="10%"
-                     height="10%"><a
-                    href="index" class="navbar-brand pull-left">恒鼎轨道 </a>
+                {#                <img id="logo" src="{{ url_for("static",filename="img/logo.jpg") }}" alt="logo" width="10%"#}
+                {#                     height="10%">#}
+                <a
+                        href="indexlist" class="navbar-brand pull-left">国之鼎&恒鼎 </a>
                 <p id="navtext" class="small pull-left"><span>|</span>&nbsp;行政管理系统</p>
 
             </div>
@@ -66,9 +68,13 @@
                 <ul class="nav navbar-nav">
                     <li>
                         {% if current_user.is_authenticated %}
-                            <p>{{ current_user.username }}
+
+
+                            <p><label for="">公司：</label>{{ current_user.company }}&nbsp;&nbsp; <label
+                                    for="">部门：</label>{{ current_user.department }}&nbsp; &nbsp; &nbsp;
+                                &nbsp; {{ current_user.username }}
                                 <span>|</span>&nbsp;
-                                <a type="button" href="{{ url_for("home.logout") }}">退出</a>
+                                <a type="button" href="{{ url_for("home.logout") }}">退出登录</a>
                             </p>
 
                         {% else %}
