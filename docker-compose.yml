@@ -7,20 +7,21 @@ services:
     ports:
       - "5000:5000"
     networks:
-     default:
-       ipv4_address: 172.18.0.4
+      default:
+        ipv4_address: 172.18.0.4
     depends_on:
       - mysql
     restart: always
     
   mysql:
     image: mysql:8.0.16
+    command: --innodb-use-native-aio=0
     ports:
       - "4306:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=11111111
     volumes:
-      - "/d/docker/mysql/data:/var/lib/mysql"
+      - "/mysql/data:/var/lib/mysql"
     networks:
       default:
         ipv4_address: 172.18.0.3 

@@ -5,10 +5,10 @@ ENV FLASK_CONFIG production
 
 
 
-COPY requirements requirements
+COPY requirements.txt requirements.txt
 RUN python3 -m pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple some-package
 
-RUN pip --default-timeout=100 install -r requirements/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple some-package
+RUN pip --default-timeout=100 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple some-package
 COPY management management
 COPY migrations migrations
 COPY config.py manage.py boot.sh ./
