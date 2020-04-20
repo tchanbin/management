@@ -12,7 +12,7 @@ COPY management management
 COPY migrations migrations
 COPY config.py manage.py boot.sh ./
 
-
+RUN touch boot.sh
 EXPOSE 5000
 
-ENTRYPOINT ["./boot.sh"]
+ENTRYPOINT ["sh","./boot.sh"]
