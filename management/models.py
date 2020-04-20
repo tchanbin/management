@@ -180,6 +180,7 @@ class CarProcedureInfo(db.Model):
                                                   backref="car_procedure_infos_confirm", single_parent=True)
     miles = db.Column(db.Integer)
     company = db.Column(db.String(10))
+
     def jsonstr(self):
         jsonstr = {
             "id": self.id,
@@ -206,7 +207,7 @@ class CarProcedureInfo(db.Model):
             "status2": "二级审批中" if self.status2 == 0 else "审批通过" if self.status2 == 1 else "二级审批被拒绝",
             "confirmer": self.car_procedure_infos_confirm.username if self.confirmer else "",
             "miles": self.miles,
-            "company":self.company
+            "company": self.company
         }
         return jsonstr
 
@@ -247,3 +248,34 @@ class PackageProcedureInfo(db.Model):
             "confirm_time": self.confirm_time.strftime("%Y-%m-%d %H:%M:%S"),
         }
         return jsonstr
+
+
+# 会议室表
+class House(db.Model):  # 这是房间表
+    __tablename__ = 'houses'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(15))
+    company = db.Column(db.String(10))
+
+    def __str__(self):
+        return self.name
+
+
+times = ((1, '8:00-8:30'), (2, '8:30-9:00'), (3, '9:00-9:30'), (4, '9:30-10:00'),
+         (5, '10:00-10:30'), (6, '10:30-11:00'), (7, '11:00-11:30'), (8, '11:30-12:00'),
+         (9, '12:00-12:30'), (10, '12:30-13:00'), (11, '13:00-13:30'), (12, '13:30-14:00'),
+         (13, '14:00-14:30'), (14, '14:30-15:00'), (15, '15:00-15:30'), (16, '15:30-16:00'),
+         (17, '16:00-16:30'), (18, '16:30-17:00'), (19, '17:00-17:30'), (20, '17:30-18:00'),
+         )
+
+
+class Order(db.Model):  # 这是会议室预定记录表
+    __tablename__ = 'orders'
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date())
+    user = db.Column(db.String(15))
+    house = db.Column(db.String(15))
+    time = db.Column(db.Integer)
+    company = db.Column(db.String(10))
+    def __str__(self):
+        return self.name
