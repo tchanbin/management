@@ -1,0 +1,27 @@
+/*调整修改密码窗体的间距*/
+
+.outer {
+    width: 100%;
+    height: 40px;
+    background-color: #337ab7;
+    color: white;
+    line-height: 40px;
+}
+
+.left {
+    float: left;
+    margin-top: 10px;
+    margin-left: 10px;
+    color: black;
+    height: 20px;
+}
+
+#title {
+    float: right;
+    margin-right: 500px;
+    font-size: 20px;
+}
+
+#date {
+    float: left;
+}

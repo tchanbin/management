@@ -1,0 +1,79 @@
+{% extends 'home/homebase.html' %}
+
+{% block title %}会议室预约申请表{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/startprocedure.css") }}">
+
+
+{% endblock %}
+{% block page_content %}
+
+    <div class="panel panel-primary ">
+        <div class="panel-heading text-center">会议室预约申请表</div>
+        <div class="container">
+            <div class="row">
+                <br>
+                <div class="form-group form-inline">
+                    <form action="">
+                        <input type="text" class="form-control" id="bookdate" name="bookdate">
+                        <button type="submit" class="btn btn-primary">查询</button>
+                    </form>
+                </div>
+{#            查询与预定界面，以日期时间形式展开#}
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>会议室</th>
+{#                     #这是循环生产时间的信息，也就是表头#}
+                        {% for choice in choices %}
+                            <th>{{ choice.1 }}</th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+{#                    #所有的表体数据都是由后端构造的#}
+                    {{ data }}
+                    </tbody>
+                </table>
+                <button class="btn btn-block btn-primary tijiao">提交</button>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $("#bookdate").datetimepicker({
+            minView: "month", //选择日期后，不会再跳转去选择时分秒
+            format: 'yyyy-mm-dd',
+            language: 'zh-CN',
+            autoclose: true,
+            startView: 2,
+            todayBtn: true,
+
+        });
+
+    </script>
+    {#   插入成功提示#}
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'error',//消息类型。error、info、success
+                    hideAfter: 3,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
+
+{% endblock %}

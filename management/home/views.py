@@ -4,7 +4,8 @@ from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm, AddNewUser,
 from flask_login import login_required, current_user, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_, or_, extract
-from ..models import Permission, Role, User, CarProcedureInfo, CarList, ProcedureList, PackageProcedureInfo,CompanyDepartment
+from ..models import Permission, Role, User, CarProcedureInfo, CarList, ProcedureList, PackageProcedureInfo, \
+    CompanyDepartment,times
 from . import home
 from management import db, excel
 from datetime import datetime
@@ -67,7 +68,7 @@ def confirmlist():
                                                CarProcedureInfo.company == current_user.company,
                                                CarProcedureInfo.actual_end_datetime == None).count()
     # 第二个流程---快递流程的总数量和运行数量
-    p2num = PackageProcedureInfo.query.filter(PackageProcedureInfo.collect_person == current_user.username ).count()
+    p2num = PackageProcedureInfo.query.filter(PackageProcedureInfo.collect_person == current_user.username).count()
     p2numusing = PackageProcedureInfo.query.filter(PackageProcedureInfo.status == "待寄出").count()
     # 放一个字典，存放所有流程的总数量和正在使用的流程的数量，存放用车流程的数量
     num["p1"] = p1num
@@ -252,6 +253,15 @@ def procedureapproval2():
         flash("您填写的寄件人/收件人不存在，请重新填写")
     return render_template("home/procedureapproval2.html", current_time=datetime.utcnow(), form=form,
                            )
+
+
+# 会议室预约申请表
+@home.route("/procedureapproval3", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.APPLY)
+def procedureapproval3():
+    choices=times
+    return render_template("home/procedureapproval3.html", current_time=datetime.utcnow(),choices=choices)
 
 
 # 1级与2级待审批界面
@@ -650,7 +660,7 @@ def procedurelists():
         ).order_by(
             CarProcedureInfo.actual_end_datetime.asc()).all()
         if arrays:  # 如果有数据则导出
-            column = [["序号", "流程编号", "结束日期", "申请人", "目的地", "用车原因", "车型", "是否用ETC", "公里数","公司"]]
+            column = [["序号", "流程编号", "结束日期", "申请人", "目的地", "用车原因", "车型", "是否用ETC", "公里数", "公司"]]
             i = 1
             for array in arrays:
                 list = array.jsonstr()  # 将每一行查询的数据转换成字典格式
@@ -828,7 +838,8 @@ def resetpwd():
 @permission_required(Permission.L2_APPROVAL)
 def usermanage():
     form = AddNewUser()
-    form.department.choices = [(c.id, c.department) for c in CompanyDepartment.query.filter_by(company=current_user.company)]
+    form.department.choices = [(c.id, c.department) for c in
+                               CompanyDepartment.query.filter_by(company=current_user.company)]
     page = request.args.get("page", 1, type=int)
     keywords = request.args.get("keywords", "")
     pagination = User.query.filter(User.username.contains(keywords),
