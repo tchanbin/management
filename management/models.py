@@ -179,7 +179,11 @@ class CarProcedureInfo(db.Model):
     car_procedure_infos_confirm = db.relationship('User', foreign_keys=[confirmer],
                                                   backref="car_procedure_infos_confirm", single_parent=True)
     miles = db.Column(db.Integer)
+    outmiles = db.Column(db.Integer)
     company = db.Column(db.String(10))
+    driver = db.Column(db.String(10))
+    rejectreason = db.Column(db.String(100))
+
 
     def jsonstr(self):
         jsonstr = {
@@ -207,7 +211,10 @@ class CarProcedureInfo(db.Model):
             "status2": "二级审批中" if self.status2 == 0 else "审批通过" if self.status2 == 1 else "二级审批被拒绝",
             "confirmer": self.car_procedure_infos_confirm.username if self.confirmer else "",
             "miles": self.miles,
-            "company": self.company
+            "outmiles": self.outmiles,
+            "company": self.company,
+            "rejectreason": self.rejectreason,
+            "driver": self.driver
         }
         return jsonstr
 
