@@ -1,11 +1,16 @@
 version: "3"
 
 services:
-
+  
   flask:
-    image: flask:1.0
+    image: daocloud.io/tchanbin/gzdhd:1.1
     ports:
       - "5000:5000"
+    environment:
+      - TZ=Asia/Shanghai
+    #command: [                        #使用 command 可以覆盖容器启动后默认执行的命令
+    #      '--default-time-zone=+08:00'                    #设置mysql数据库的 时区问题！！！！ 而不是设置容器的时区问题！！！！
+    #]
     networks:
      default:
        ipv4_address: 172.18.0.4
@@ -14,13 +19,22 @@ services:
     restart: always
     
   mysql:
-    image: mysql:8.0.16
+    image: mysql:8.0.18
+    command: --innodb-use-native-aio=0
     ports:
       - "4306:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=11111111
+      - TZ=Asia/Shanghai
+    command: [                        #使用 command 可以覆盖容器启动后默认执行的命令
+          '--character-set-server=utf8mb4',            #设置数据库表的数据集
+          '--collation-server=utf8mb4_unicode_ci',    #设置数据库表的数据集
+          '--default-time-zone=+08:00'                    #设置mysql数据库的 时区问题！！！！ 而不是设置容器的时区问题！！！！
+    ]
     volumes:
       - "D:/docker/mysql/data:/var/lib/mysql"
+     # - "D:/docker/mysql/localtime:/etc/localtime"
+      
     networks:
       default:
         ipv4_address: 172.18.0.3 

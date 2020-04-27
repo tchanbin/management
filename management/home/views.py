@@ -1,11 +1,12 @@
 from flask import render_template, redirect, url_for, abort, flash, request, \
     current_app, make_response, g, session, Response, jsonify, json
-from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm, AddNewUser, PackageProcedureForm
+from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm, AddNewUser, PackageProcedureForm, OutMilesForm, \
+    L2approvalnok
 from flask_login import login_required, current_user, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_, or_, extract
 from ..models import Permission, Role, User, CarProcedureInfo, CarList, ProcedureList, PackageProcedureInfo, \
-    CompanyDepartment,times
+    CompanyDepartment, times
 from . import home
 from management import db, excel
 from datetime import datetime
@@ -39,10 +40,22 @@ def indexlist():
     num = {}
     # 第一个流程---用车流程的总数量和运行数量
     p1num = CarProcedureInfo.query.filter(CarProcedureInfo.user_id == current_user.id).count()
+    # p1numusing = CarProcedureInfo.query.filter(CarProcedureInfo.user_id == current_user.id,
+    #                                            CarProcedureInfo.status1 != 2,
+    #                                            CarProcedureInfo.status2 != 2,
+    #                                            CarProcedureInfo.actual_end_datetime == None).count()
     p1numusing = CarProcedureInfo.query.filter(CarProcedureInfo.user_id == current_user.id,
-                                               CarProcedureInfo.status1 != 2,
-                                               CarProcedureInfo.status2 != 2,
-                                               CarProcedureInfo.actual_end_datetime == None).count()
+                                               or_(
+                                                   and_(
+                                                       CarProcedureInfo.status1 == 0,
+                                                       CarProcedureInfo.status2 == 0,
+                                                   ),
+                                                   and_(
+                                                       CarProcedureInfo.status1 == 1,
+                                                       CarProcedureInfo.status2 == 0,
+                                                   ),
+
+                                               )).count()
     # 第二个流程---快递流程的总数量和运行数量
     p2num = PackageProcedureInfo.query.filter(PackageProcedureInfo.collect_person == current_user.username).count()
     p2numusing = PackageProcedureInfo.query.filter(PackageProcedureInfo.collect_person == current_user.username,
@@ -167,7 +180,8 @@ def procedureapproval1():
                                                   etc=form.ifetc.data,
                                                   status1=0,
                                                   status2=0,
-                                                  company=current_user.company
+                                                  company=current_user.company,
+                                                  driver=form.driver.data
 
                                                   )
 
@@ -260,8 +274,8 @@ def procedureapproval2():
 @login_required
 @permission_required(Permission.APPLY)
 def procedureapproval3():
-    choices=times
-    return render_template("home/procedureapproval3.html", current_time=datetime.utcnow(),choices=choices)
+    choices = times
+    return render_template("home/procedureapproval3.html", current_time=datetime.utcnow(), choices=choices)
 
 
 # 1级与2级待审批界面
@@ -271,6 +285,7 @@ def procedureapproval3():
 def L1L2approval():
     page = request.args.get("page", 1, type=int)
     keywords = request.args.get("keywords", "")
+
     if not current_user.can(Permission.L2_APPROVAL):
         pagination = CarProcedureInfo.query.filter(CarProcedureInfo.department == current_user.department,
                                                    CarProcedureInfo.approval_time.contains(keywords),
@@ -371,25 +386,29 @@ def L2approvalok(procedure_id):
 
 
 # 二级审批拒绝流程
-@home.route("/L2approvalnok/<procedure_id>", methods=["GET", "POST"])
+@home.route("/L2approvalnok", methods=["GET", "POST"])
 @login_required
 @permission_required(Permission.L2_APPROVAL)
-def L2approvalnok(procedure_id):
+def L2approvalnok():
     # 根据流程id找到该条记录
-    procedure = CarProcedureInfo.query.filter(
-        CarProcedureInfo.id == procedure_id,
-    ).first()
-    # 对该条记录的status1进行更新
-    procedure.status2 = 2
-    procedure.second_approval = current_user.id
-    db.session.add(procedure)
-    try:
-        db.session.commit()
-        flash("您已拒绝一条申请")
-    except:
-        db.session.rollback()
-        flash("提交数据失败")
-        return render_template("home/../templates/404.html")
+    if request.form.get("rejectreason"):
+        procedure_id = request.form.get("procedure_id")
+        rejectreason = request.form.get("rejectreason")
+        procedure = CarProcedureInfo.query.filter(
+            CarProcedureInfo.id == procedure_id,
+        ).first()
+        # 对该条记录的status1进行更新
+        procedure.status2 = 2
+        procedure.second_approval = current_user.id
+        procedure.rejectreason = rejectreason
+        db.session.add(procedure)
+        try:
+            db.session.commit()
+            flash("您已拒绝一条申请")
+        except:
+            db.session.rollback()
+            flash("提交数据失败")
+            return render_template("home/../templates/404.html")
 
     return redirect(url_for("home.L1L2approval"))
 
@@ -432,7 +451,7 @@ def myapprovaledprocedure():
     return render_template("home/myapprovaledprocedure.html", my_procedure=my_procedure, pagination=pagination, )
 
 
-# 确认车辆出入流程操作界面
+# 确认车辆入厂流程操作界面
 @home.route("/confirmcar", methods=["GET", "POST"])
 @login_required
 @permission_required(Permission.CONFIRM)
@@ -440,6 +459,7 @@ def confirmcar():
     page = request.args.get("page", 1, type=int)
     # keywords = request.args.get("keywords", "")
     form = MilesForm()
+    form2 = OutMilesForm()
     if form.validate_on_submit():
         miles = form.miles.data
         procedure_id = form.procedure_id.data
@@ -469,7 +489,49 @@ def confirmcar():
     ["FLASKY_PER_PAGE"], error_out=False)
     my_procedure = pagination.items
 
-    return render_template("home/confirmcar.html", my_procedure=my_procedure, pagination=pagination, form=form)
+    return render_template("home/confirmcar.html", my_procedure=my_procedure, pagination=pagination, form=form,
+                           form2=form2)
+
+
+# 确认车辆出厂流程操作界面
+@home.route("/confirmoutcar", methods=["GET", "POST"])
+@login_required
+@permission_required(Permission.CONFIRM)
+def confirmoutcar():
+    page = request.args.get("page", 1, type=int)
+    form = MilesForm()
+    form2 = OutMilesForm()
+
+    outmiles = form2.outmiles.data
+    procedure_id = form2.procedure_id.data
+    a = CarProcedureInfo.query.filter(
+        CarProcedureInfo.id == procedure_id,
+
+    ).first()
+    a.outmiles = outmiles
+    a.actual_start_datetime = datetime.now()
+    db.session.add(a)
+    try:
+        db.session.commit()
+        flash("您已确认车辆出厂，公里数提交成功")
+    except:
+        db.session.rollback()
+        flash("提交数据失败")
+        return render_template("404.html")
+
+    pagination = CarProcedureInfo.query.filter(
+        # CarProcedureInfo.approval_time.contains(keywords),
+        CarProcedureInfo.status2 == 1,
+        CarProcedureInfo.company == current_user.company,
+        CarProcedureInfo.actual_end_datetime == None,
+
+    ).order_by(
+        CarProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
+    ["FLASKY_PER_PAGE"], error_out=False)
+    my_procedure = pagination.items
+
+    return render_template("home/confirmcar.html", my_procedure=my_procedure, pagination=pagination, form=form,
+                           form2=form2)
 
 
 # 确认快递邮寄出厂流程操作界面
@@ -660,19 +722,23 @@ def procedurelists():
         ).order_by(
             CarProcedureInfo.actual_end_datetime.asc()).all()
         if arrays:  # 如果有数据则导出
-            column = [["序号", "流程编号", "结束日期", "申请人", "目的地", "用车原因", "车型", "是否用ETC", "公里数", "公司"]]
+            column = [["序号", "流程编号", "申请人", "驾驶员", "目的地", "用车原因", "车型", "是否用ETC", "入厂公里数", "出厂公里数",
+                       "入厂时间","出厂时间" ,"公司"]]
             i = 1
             for array in arrays:
                 list = array.jsonstr()  # 将每一行查询的数据转换成字典格式
                 array_content = [i,
                                  list["id"],
-                                 list["actual_end_datetime"][0:10],
                                  list["user_name"],
+                                 list["driver"],
                                  list["arrival_place"],
                                  list["reason"],
                                  list["car_name"],
                                  list["etc"],
+                                 list["outmiles"],
                                  list["miles"],
+                                 list["actual_end_datetime"],
+                                 list["actual_start_datetime"],
                                  list["company"],
                                  ]  # 将每一行的数据需要的先转换成字典，然后把相应内容导出。
                 column.append(array_content)

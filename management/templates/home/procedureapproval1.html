@@ -119,9 +119,9 @@
                         </div>
                         <div class="row">
 
-                            <div class="form-group col-md-8 form-inline ">
+                            <div class="form-group col-md-6 form-inline ">
                                 <label for="reason" class="starinfo">用车原因：</label>
-                                {{ form.reason(id="reason",class="form-control",style="width:80%") }}<br>
+                                {{ form.reason(id="reason",class="form-control",style="width:80%",placeholder="私车公用请在此处填写车牌号") }}<br>
                                 {% if form.reason.errors %}
                                     {% for err in form.reason.errors %}
                                         <span class="errinfo">{{ err }}</span>
@@ -139,15 +139,25 @@
                                 {% endif %}
 
                             </div>
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="driver" class="starinfo"> 驾 驶 员：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
+                                {{ form.driver(id="driver",class="form-control") }}
+                                {% if form.driver.errors %}
+                                    {% for err in form.driver.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
 
                         </div>
                         <div class="row text-center btn-block">
                             {{ form.submit(class="btn btn-primary") }}
                         </div>
-{#                        <P>{% for msg in get_flashed_messages() %}#}
-{#                            {{ msg }}#}
-{#                        {% endfor %}#}
-{#                        </P>#}
+                        {#                        <P>{% for msg in get_flashed_messages() %}#}
+                        {#                            {{ msg }}#}
+                        {#                        {% endfor %}#}
+                        {#                        </P>#}
 
                     </filedset>
                 </form>
@@ -202,7 +212,7 @@
 {% endblock %}
 {% block scripts %}
     {{ super() }}
-     <script>
+    <script>
         $("#bookstartdatetime").datetimepicker({
             format: 'yyyy-mm-dd hh:ii:ss',
             language: 'zh-CN',
@@ -231,7 +241,7 @@
             $("#bookstartdatetime").datetimepicker('setEndDate', endtime);
         });
     </script>
-{#   插入成功提示#}
+    {#   插入成功提示#}
     <script>
         $(document).ready(function () {
             $._messengerDefaults = {

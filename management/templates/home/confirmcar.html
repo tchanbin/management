@@ -42,11 +42,13 @@
 
                         {% if not my_procedure.actual_start_datetime %}
                             <td>
-                                <a class="aok"
-                                   href="{{ url_for("home.confirmleave",procedure_id=my_procedure.id) }}">
-                                    <button class="btn btn-primary">确认</button>
-                                </a>
-
+                                {#  <a class="aok"#}
+                                {#  href="{{ url_for("home.confirmleave",procedure_id=my_procedure.id) }}">#}
+                                {#  <button class="btn btn-primary">确认</button>#}
+                                {#  </a>#}
+                                <button type="button" class="btn btn-primary" data-toggle="modal"
+                                        data-target="#confirmoutmodal" data-whatever="{{ my_procedure.id }}">确认
+                                </button>
                             </td>
                         {% else %}
                             <td class="success text-center align-center" style="vertical-align: middle">已出厂</td>
@@ -72,7 +74,7 @@
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span></button>
-                                    <h4 class="modal-title" id="exampleModalLabel">请填写最终公里数</h4>
+                                    <h4 class="modal-title" id="exampleModalLabel">请填写入厂公里数</h4>
                                 </div>
                                 <div class="modal-body">
                                     <div class="form-group">
@@ -89,6 +91,38 @@
                                     <button type="button" class="btn btn-default" data-dismiss="modal">关闭
                                     </button>
                                     {{ form.submit(class="btn btn-primary") }}
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <form method="post" action="confirmoutcar">
+                    {{ form.csrf_token() }}
+                    <div class="modal fade" id="confirmoutmodal" tabindex="-1" role="dialog"
+                         aria-labelledby="exampleModalLabel">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span></button>
+                                    <h4 class="modal-title" id="exampleModalLabel">请填写出厂公里数</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="recipient-name" type="hidden" class="control-label"></label>
+                                        {{ form2.procedure_id (id="procedure_id",type="hidden",class="form-control") }}
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="message-text" class="control-label">公里数:</label>
+                                        {{ form2.outmiles(class="form-control",oninput = "value=value.replace(/[^\d]/g,'')") }}
+                                    </div>
+
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                                    </button>
+                                    {{ form2.submit(class="btn btn-primary") }}
                                 </div>
 
                             </div>
@@ -142,6 +176,18 @@
     <script>
 
         $('#confirmmodal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) // Button that triggered the modal
+            var recipient = button.data('whatever') // Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this)
+            {#modal.find('.modal-title').text('New message to ' + recipient)#}
+            modal.find('#procedure_id').val(recipient)
+        })
+    </script>
+    <script>
+
+        $('#confirmoutmodal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget) // Button that triggered the modal
             var recipient = button.data('whatever') // Extract info from data-* attributes
             // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).

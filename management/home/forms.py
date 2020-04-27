@@ -123,7 +123,12 @@ class CarProcedureForm(FlaskForm):
     ifetc = BooleanField(
         label='是否需要ETC'
     )
+    driver = StringField(
+        label='驾驶员',
+        validators=[DataRequired("驾驶员不能为空")],
+        render_kw={"required": False}
 
+    )
     submit = SubmitField(
         label="提交申请",
 
@@ -168,11 +173,11 @@ class PackageProcedureForm(FlaskForm):
     )
 
 
-# 保安确认公里数
+# 保安确认入厂公里数
 class MilesForm(FlaskForm):
     miles = IntegerField(
         label='最终公里数',
-        # validators=[DataRequired("公里数不能为空")],
+        validators=[DataRequired("公里数不能为空")],
         render_kw={"required": False}
 
     )
@@ -187,8 +192,45 @@ class MilesForm(FlaskForm):
         label="提交申请",
 
     )
+# 保安确认出厂公里数
+class OutMilesForm(FlaskForm):
+    outmiles = IntegerField(
+        label='出厂公里数',
+        # validators=[DataRequired("公里数不能为空")],
+        render_kw={"required": False}
 
+    )
+    procedure_id = StringField(
+        label='出厂公里数',
+        # validators=[DataRequired("流程id不能为空")],
+        render_kw={"required": False}
 
+    )
+
+    submit = SubmitField(
+        label="提交申请",
+
+    )
+# 二级审批拒绝原因
+class L2approvalnok(FlaskForm):
+
+    rejectreason = StringField(
+        label='拒绝原因',
+        validators=[DataRequired("原因不能为空")],
+        render_kw={"required": False}
+
+    )
+    procedure_id = StringField(
+        label='出厂公里数',
+        # validators=[DataRequired("流程id不能为空")],
+        render_kw={"required": False}
+
+    )
+
+    submit = SubmitField(
+        label="提交申请",
+
+    )
 # 添加新用户
 class AddNewUser(FlaskForm):
     name = StringField(
