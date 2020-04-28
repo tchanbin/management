@@ -724,7 +724,7 @@ def procedurelists():
             CarProcedureInfo.actual_end_datetime.asc()).all()
         if arrays:  # 如果有数据则导出
             column = [["序号", "流程编号", "申请人", "驾驶员", "目的地", "用车原因", "车型", "是否用ETC", "入厂公里数", "出厂公里数",
-                       "入厂时间","出厂时间" ,"公司"]]
+                       "出厂时间","入厂时间" ,"公司"]]
             i = 1
             for array in arrays:
                 list = array.jsonstr()  # 将每一行查询的数据转换成字典格式
@@ -738,8 +738,8 @@ def procedurelists():
                                  list["etc"],
                                  list["outmiles"],
                                  list["miles"],
-                                 list["actual_end_datetime"],
                                  list["actual_start_datetime"],
+                                 list["actual_end_datetime"],
                                  list["company"],
                                  ]  # 将每一行的数据需要的先转换成字典，然后把相应内容导出。
                 column.append(array_content)
