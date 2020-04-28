@@ -181,7 +181,8 @@ def procedureapproval1():
                                                   status1=0,
                                                   status2=0,
                                                   company=current_user.company,
-                                                  driver=form.driver.data
+                                                  driver=form.driver.data,
+                                                  reason=form.reason.data,
 
                                                   )
 
