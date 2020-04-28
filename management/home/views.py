@@ -723,7 +723,7 @@ def procedurelists():
         ).order_by(
             CarProcedureInfo.actual_end_datetime.asc()).all()
         if arrays:  # 如果有数据则导出
-            column = [["序号", "流程编号", "申请人", "驾驶员", "目的地", "用车原因", "车型", "是否用ETC", "入厂公里数", "出厂公里数",
+            column = [["序号", "流程编号", "申请人", "驾驶员", "目的地", "用车原因", "车型", "是否用ETC", "出厂公里数", "入厂公里数",
                        "出厂时间","入厂时间" ,"公司"]]
             i = 1
             for array in arrays:
@@ -736,8 +736,8 @@ def procedurelists():
                                  list["reason"],
                                  list["car_name"],
                                  list["etc"],
-                                 list["outmiles"],
                                  list["miles"],
+                                 list["outmiles"],
                                  list["actual_start_datetime"],
                                  list["actual_end_datetime"],
                                  list["company"],
