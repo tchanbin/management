@@ -3,7 +3,7 @@ version: "3"
 services:
   
   flask:
-    image: daocloud.io/tchanbin/gzdhd:1.3.2
+    image: daocloud.io/tchanbin/gzdhd:1.3.4
     ports:
       - "5000:5000"
     environment:

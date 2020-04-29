@@ -115,14 +115,16 @@
                                                         <div class="form-group">
                                                             <label for="recipient-name" type="hidden"
                                                                    class="control-label"></label>
-                                                            <input  id="procedure_id" name="procedure_id" type="hidden" class="form-control")>
-{#                                                            {{ form.procedure_id (id="procedure_id",type="hidden",class="form-control") }}#}
+                                                            <input id="procedure_id" name="procedure_id" type="hidden"
+                                                                   class="form-control" )>
+                                                            {#                                                            {{ form.procedure_id (id="procedure_id",type="hidden",class="form-control") }}#}
                                                         </div>
                                                         <div class="form-group">
                                                             <label for="message-text"
                                                                    class="control-label">拒绝理由:</label>
-                                                            <input type="text" id="rejectreason" name="rejectreason"  class="form-control")>
-{#                                                            {{ form.miles(class="form-control",oninput = "value=value.replace(/[^\d]/g,'')") }}#}
+                                                            <input type="text" id="rejectreason" name="rejectreason"
+                                                                   class="form-control" )>
+                                                            {#                                                            {{ form.miles(class="form-control",oninput = "value=value.replace(/[^\d]/g,'')") }}#}
                                                         </div>
 
                                                     </div>
@@ -131,7 +133,7 @@
                                                                 data-dismiss="modal">关闭
                                                         </button>
                                                         <button type="submit" class="btn btn-primary">提交</button>
-{#                                                        {{ form.submit(class="btn btn-primary") }}#}
+                                                        {#                                                        {{ form.submit(class="btn btn-primary") }}#}
                                                     </div>
 
                                                 </div>
@@ -190,49 +192,12 @@
             {% endfor %}
         });
     </script>
-{#    <script>#}
-{#        $(function () {#}
-{#            $('#table').bootstrapTable()#}
-{#        })#}
-{#    </script>#}
-    <script>
-        $(document).ready(function () {
-            $(".query").click(function () {
-                var procedure_id = this.id
-
-                $.post(
-                    "{{ url_for("home.procedureinfos") }}",
-                    JSON.stringify({
-                        procedure_id: procedure_id,
-                    }),
-                    function (data) {
-                        $('#mymodal').modal("show")
-                        $("#procedure_id").text(data.id)
-                        $("#user_name").text(data.user_name)
-                        $("#user_name2").text(data.user_name)
-                        $("#tel").text(data.tel)
-                        $("#department").text(data.department)
-                        $("#car_name").text(data.car_name)
-                        $("#approval_time").text(data.approval_time)
-                        $("#arrival_place").text(data.arrival_place)
-                        $("#book_start_datetime").text(data.book_start_datetime)
-                        $("#book_end_datetime").text(data.book_end_datetime)
-                        $("#actual_start_datetime").text(data.actual_start_datetime)
-                        $("#actual_end_datetime").text(data.actual_end_datetime)
-                        $("#number").text(data.number)
-                        $("#namelist").text(data.namelist)
-                        $("#reason").text(data.reason)
-                        $("#etc").text(data.etc)
-                        $("#first_approval").text(data.first_approval)
-                        $("#status1").text(data.status1)
-                        $("#second_approval").text(data.second_approval)
-                        $("#status2").text(data.status2)
-                        $("#rejectreason").text(data.rejectreason)
-                    }
-                )
+        <script>
+            $(function () {
+                $('#table').bootstrapTable()
             })
-        });
-    </script>
+        </script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/home/procedureinfoquery.js") }}"></script>
     <script>
 
         $('#rejectmodal').on('show.bs.modal', function (event) {
