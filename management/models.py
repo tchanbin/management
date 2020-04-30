@@ -101,7 +101,8 @@ class User(UserMixin, db.Model):
             "altername": self.username,
             "alterdepartment": self.department,
             "altertel": self.tel,
-            "alterroleid": self.role.name,
+            "alterrolename": self.role.name,
+            "alterroleid": self.role_id,
 
         }
         return jsonstr
