@@ -133,7 +133,9 @@ class CompanyDepartment(db.Model):
 class ProcedureList(db.Model):
     __tablename__ = 'procedure_lists'
     id = db.Column(db.Integer, primary_key=True)
+    no = db.Column(db.Integer)
     name = db.Column(db.String(10), unique=True)
+    description = db.Column(db.String(10))
     procedure_lists = db.relationship("CarProcedureInfo", backref="procedure_name", lazy='dynamic')
 
 
