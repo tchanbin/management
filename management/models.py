@@ -149,11 +149,47 @@ class CarList(db.Model):
     car_procedure_infos = db.relationship('CarProcedureInfo', backref='cars', lazy='dynamic')
 
 
+# 流程节点表
+class ProcedureNode(db.Model):
+    __tablename__ = 'procedure_nodes'
+    id = db.Column(db.Integer, primary_key=True)
+    no = db.Column(db.Integer)
+    name = db.Column(db.String(25))
+    parent_id = db.Column(db.Integer)
+    role = db.Column(db.String(25))
+    description = db.Column(db.String(25))
+
+
+# 流程线表
+class ProcedureLine(db.Model):
+    __tablename__ = 'procedure_lines'
+    id = db.Column(db.Integer, primary_key=True)
+    no = db.Column(db.Integer)
+    pre_line_id = db.Column(db.Integer)
+    pre_line_name = db.Column(db.String(25))
+    next_line_id = db.Column(db.Integer)
+    next_line_name = db.Column(db.String(25))
+    description = db.Column(db.String(25))
+
+
+# 流程审批表
+class ProcedureApproval(db.Model):
+    __tablename__ = 'procedure_approval'
+    id = db.Column(db.Integer, primary_key=True)
+    procedure_id = db.Column(db.Integer)
+    node_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer)
+    user_name = db.Column(db.String(25))
+    reason = db.Column(db.String(25))
+    approval_time = db.Column(db.DateTime(), default=datetime.now)
+
+
 # 用车流程信息表
 class CarProcedureInfo(db.Model):
     __tablename__ = 'car_procedure_infos'
     id = db.Column(db.Integer, primary_key=True)
     procedure_list_id = db.Column(db.Integer, db.ForeignKey('procedure_lists.id'))
+    procedure_no = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     tel = db.Column(db.String(15))
     users = db.relationship('User', foreign_keys=user_id, backref="car_procedure_infos",
@@ -171,13 +207,13 @@ class CarProcedureInfo(db.Model):
     etc = db.Column(db.Boolean, default=False)
     arrival_place = db.Column(db.String(30))
     first_approval = db.Column(db.Integer, db.ForeignKey('users.id'))
-    first_users = db.relationship('User', foreign_keys=[first_approval], backref="car_procedure_infos_first",
-                                  single_parent=True)
-    status1 = db.Column(db.Integer)
-    second_approval = db.Column(db.Integer, db.ForeignKey('users.id'))
-    second_users = db.relationship('User', foreign_keys=[second_approval], backref="car_procedure_infos_second",
-                                   single_parent=True)
-    status2 = db.Column(db.Integer)
+    # first_users = db.relationship('User', foreign_keys=[first_approval], backref="car_procedure_infos_first",
+    #                               single_parent=True)
+    # status1 = db.Column(db.Integer)
+    # second_approval = db.Column(db.Integer, db.ForeignKey('users.id'))
+    # second_users = db.relationship('User', foreign_keys=[second_approval], backref="car_procedure_infos_second",
+    #                                single_parent=True)
+    # status2 = db.Column(db.Integer)
     confirmer = db.Column(db.Integer, db.ForeignKey('users.id'))
     car_procedure_infos_confirm = db.relationship('User', foreign_keys=[confirmer],
                                                   backref="car_procedure_infos_confirm", single_parent=True)
@@ -186,7 +222,8 @@ class CarProcedureInfo(db.Model):
     company = db.Column(db.String(10))
     driver = db.Column(db.String(10))
     rejectreason = db.Column(db.String(100))
-
+    procedure_no = db.Column(db.Integer)
+    state = db.Column(db.String(10))
 
     def jsonstr(self):
         jsonstr = {
@@ -287,5 +324,6 @@ class Order(db.Model):  # 这是会议室预定记录表
     house = db.Column(db.String(15))
     time = db.Column(db.Integer)
     company = db.Column(db.String(10))
+
     def __str__(self):
         return self.name
