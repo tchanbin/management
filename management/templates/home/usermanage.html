@@ -96,11 +96,10 @@
                                 <label class="control-label">姓名</label>
                                 <input type="text" name="altername" id="altername" class="form-control">
                             </div>
-                            {% if current_user.department=="恒鼎" %}
+                            {% if current_user.company=="恒鼎" %}
                                 <div class="form-group">
                                     <label class="control-label">部门:</label>
                                     <select name="alterdepartment" id="alterdepartment" class="form-control">
-                                        <option value=""></option>
                                         <option value="综合管理部">综合管理部</option>
                                         <option value="财务部">财务部</option>
                                         <option value="采购部">采购部</option>
