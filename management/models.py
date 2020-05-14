@@ -177,7 +177,7 @@ class ProcedureApproval(db.Model):
     __tablename__ = 'procedure_approval'
     id = db.Column(db.Integer, primary_key=True)
     procedure_id = db.Column(db.Integer)
-    node_id = db.Column(db.Integer)
+    current_line_node_id = db.Column(db.Integer)
     user_id = db.Column(db.Integer)
     user_name = db.Column(db.String(25))
     reason = db.Column(db.String(25))
@@ -201,7 +201,7 @@ class CarProcedureInfo(db.Model):
     book_end_datetime = db.Column(db.DATETIME())
     actual_start_datetime = db.Column(db.DATETIME())
     actual_end_datetime = db.Column(db.DATETIME())
-    number = db.Column(db.Integer)
+    number = db.Column(db.String(20))
     namelist = db.Column(db.String(50))
     reason = db.Column(db.String(128))
     etc = db.Column(db.Boolean, default=False)
@@ -223,6 +223,7 @@ class CarProcedureInfo(db.Model):
     driver = db.Column(db.String(10))
     rejectreason = db.Column(db.String(100))
     procedure_no = db.Column(db.Integer)
+    current_line_node_id = db.Column(db.Integer)
     state = db.Column(db.String(10))
 
     def jsonstr(self):

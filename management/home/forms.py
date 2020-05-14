@@ -129,6 +129,14 @@ class CarProcedureForm(FlaskForm):
         render_kw={"required": False}
 
     )
+    approvaluser = SelectField(
+        label='审批经理',
+        validators=[DataRequired("审批经理不能为空")],
+        coerce=int,
+        choices=[],
+        render_kw={"required": False}
+
+    )
     submit = SubmitField(
         label="提交申请",
 
