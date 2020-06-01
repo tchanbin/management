@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, IntegerField, DateTimeField, \
-    SelectMultipleField, SelectField
+    SelectMultipleField, SelectField,TextAreaField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from ..models import User
 
@@ -137,10 +137,23 @@ class CarProcedureForm(FlaskForm):
         render_kw={"required": False}
 
     )
+    L1approvereason = StringField(
+        label='部门经理审批意见',
+        validators=[DataRequired("审批意见不能为空")],
+        render_kw={"required": False}
+
+    )
+    L2approvereason = TextAreaField(
+        label='综管部经理审批意见',
+        validators=[DataRequired("审批意见不能为空")],
+        render_kw={"required": False}
+
+    )
     submit = SubmitField(
         label="提交申请",
 
     )
+
 
 
 # 快递流程申请表单

@@ -16,6 +16,13 @@ class Permission:
     L1_APPROVAL = 4
     L2_APPROVAL = 8
 
+class State:
+    SAVE=0
+    RUNNING=1
+    FINISH=2
+    CANCEL=5
+
+
 
 # 用户角色表
 class Role(db.Model):
@@ -132,12 +139,12 @@ class CompanyDepartment(db.Model):
 # 流程清单表
 class ProcedureList(db.Model):
     __tablename__ = 'procedure_lists'
-    id = db.Column(db.Integer, primary_key=True)
-    no = db.Column(db.Integer)
-    name = db.Column(db.String(10), unique=True)
-    description = db.Column(db.String(10))
+    procedure_list_id = db.Column(db.Integer, primary_key=True)
+    procedure_list_flowmodal = db.Column(db.String(50))
+    procedure_list_name = db.Column(db.String(20), unique=True)
     procedure_lists = db.relationship("CarProcedureInfo", backref="procedure_name", lazy='dynamic')
-
+    procedure_list_department = db.Column(db.String(20))
+    procedure_list_company = db.Column(db.String(20))
 
 # 车辆清单
 class CarList(db.Model):
@@ -152,44 +159,70 @@ class CarList(db.Model):
 # 流程节点表
 class ProcedureNode(db.Model):
     __tablename__ = 'procedure_nodes'
-    id = db.Column(db.Integer, primary_key=True)
-    no = db.Column(db.Integer)
-    name = db.Column(db.String(25))
+    procedure_node_id = db.Column(db.Integer, primary_key=True)
+    procedure_node_flowmodal = db.Column(db.String(50))
+    procedure_node_name = db.Column(db.String(25))
     parent_id = db.Column(db.Integer)
-    role = db.Column(db.String(25))
-    description = db.Column(db.String(25))
+    procedure_node_role = db.Column(db.String(25))
+    procedure_node_escription = db.Column(db.String(25))
 
 
 # 流程线表
 class ProcedureLine(db.Model):
     __tablename__ = 'procedure_lines'
-    id = db.Column(db.Integer, primary_key=True)
-    no = db.Column(db.Integer)
-    pre_line_id = db.Column(db.Integer)
-    pre_line_name = db.Column(db.String(25))
-    next_line_id = db.Column(db.Integer)
-    next_line_name = db.Column(db.String(25))
-    description = db.Column(db.String(25))
+    procedure_line_id = db.Column(db.Integer, primary_key=True)
+    procedure_line_flowmodal=db.Column(db.String(50))
+    procedure_line_pre_line_id = db.Column(db.Integer)
+    procedure_line_pre_line_name = db.Column(db.String(25))
+    procedure_line_next_line_id = db.Column(db.Integer)
+    procedure_line_next_line_name = db.Column(db.String(25))
+    procedure_line_description = db.Column(db.String(25))
 
 
 # 流程审批表
 class ProcedureApproval(db.Model):
-    __tablename__ = 'procedure_approval'
-    id = db.Column(db.Integer, primary_key=True)
-    procedure_id = db.Column(db.Integer)
-    current_line_node_id = db.Column(db.Integer)
-    user_id = db.Column(db.Integer)
-    user_name = db.Column(db.String(25))
-    reason = db.Column(db.String(25))
-    approval_time = db.Column(db.DateTime(), default=datetime.now)
+    __tablename__ = 'procedure_approvals'
+    procedure_approval_id = db.Column(db.Integer, primary_key=True)
+    procedure_approval_flowid = db.Column(db.String(50))
+    procedure_approval_flowname = db.Column(db.String(50))
+    procedure_approval_current_line_node_id = db.Column(db.Integer)
+    procedure_approval_user_id = db.Column(db.Integer)
+    procedure_approval_user_name = db.Column(db.String(25))
+    procedure_approval_reason = db.Column(db.String(25))
+    procedure_approval_approval_datetime = db.Column(db.DateTime(), default=datetime.now)
+    procedure_approval_state = db.Column(db.Integer)
+
+
+# 流程状态表
+class ProcedureState(db.Model):
+    __tablename__ = 'procedure_states'
+    procedure_state_id = db.Column(db.Integer, primary_key=True)
+    procedure_state_flowid = db.Column(db.String(50))
+    procedure_state = db.Column(db.Integer)
+    procedure_state_name = db.Column(db.String(25))
+    procedure_state_flowmodal = db.Column(db.String(25))
+    procedure_state_procedure_list_name = db.Column(db.String(25))
+    procedure_state_user_id = db.Column(db.Integer)
+
+
+# 字段权限表
+class FieldPermission(db.Model):
+    __tablename__ = 'field_permissions'
+    field_permission_id = db.Column(db.Integer, primary_key=True)
+    field_permission_flowmodal = db.Column(db.String(50))
+    field_permission_node = db.Column(db.Integer)
+    field_permission_field_name = db.Column(db.String(25))
+    field_permission_read = db.Column(db.String(25))
+    field_permission_write = db.Column(db.String(25))
+    field_permission_company = db.Column(db.String(20))
 
 
 # 用车流程信息表
 class CarProcedureInfo(db.Model):
     __tablename__ = 'car_procedure_infos'
-    id = db.Column(db.Integer, primary_key=True)
-    procedure_list_id = db.Column(db.Integer, db.ForeignKey('procedure_lists.id'))
-    procedure_no = db.Column(db.Integer)
+    id = db.Column(db.String(36), primary_key=True)
+    procedure_list_id = db.Column(db.Integer, db.ForeignKey('procedure_lists.procedure_list_id'))
+    procedure_list_flowmodal = db.Column(db.String(50))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     tel = db.Column(db.String(15))
     users = db.relationship('User', foreign_keys=user_id, backref="car_procedure_infos",
@@ -206,7 +239,7 @@ class CarProcedureInfo(db.Model):
     reason = db.Column(db.String(128))
     etc = db.Column(db.Boolean, default=False)
     arrival_place = db.Column(db.String(30))
-    first_approval = db.Column(db.Integer, db.ForeignKey('users.id'))
+    # first_approval = db.Column(db.Integer, db.ForeignKey('users.id'))
     # first_users = db.relationship('User', foreign_keys=[first_approval], backref="car_procedure_infos_first",
     #                               single_parent=True)
     # status1 = db.Column(db.Integer)
@@ -214,9 +247,9 @@ class CarProcedureInfo(db.Model):
     # second_users = db.relationship('User', foreign_keys=[second_approval], backref="car_procedure_infos_second",
     #                                single_parent=True)
     # status2 = db.Column(db.Integer)
-    confirmer = db.Column(db.Integer, db.ForeignKey('users.id'))
-    car_procedure_infos_confirm = db.relationship('User', foreign_keys=[confirmer],
-                                                  backref="car_procedure_infos_confirm", single_parent=True)
+    # confirmer = db.Column(db.Integer, db.ForeignKey('users.id'))
+    # car_procedure_infos_confirm = db.relationship('User', foreign_keys=[confirmer],
+    #                                               backref="car_procedure_infos_confirm", single_parent=True)
     miles = db.Column(db.Integer)
     outmiles = db.Column(db.Integer)
     company = db.Column(db.String(10))
@@ -224,7 +257,7 @@ class CarProcedureInfo(db.Model):
     rejectreason = db.Column(db.String(100))
     procedure_no = db.Column(db.Integer)
     current_line_node_id = db.Column(db.Integer)
-    state = db.Column(db.String(10))
+    state = db.Column(db.Integer)
 
     def jsonstr(self):
         jsonstr = {

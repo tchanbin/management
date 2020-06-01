@@ -1,9 +1,13 @@
 <div id="nav">
-    <ul class="nav nav-pills nav-stacked text-center">
+    <ul class="nav nav-pills nav-stacked text-left">
         <li id="navtag1"><a id="navtag1a"  class="one_bar" href="{{ url_for("home.resetpwd") }}"><span
                 class="glyphicon glyphicon-edit"></span>&nbsp;&nbsp;修改密码</a></li>
-        <li id="navtag2"><a  class="one_bar" id="navtag2a" href="{{ url_for("home.indexlist") }}"><span
-                class="glyphicon glyphicon-tags"></span>&nbsp;&nbsp;我的流程</a></li>
+        <li id="navtag2"><a  class="one_bar" id="navtag2a" href="{{ url_for("home.todolist") }}"><span
+                class="glyphicon glyphicon-tags"></span>&nbsp;&nbsp;我的待办&nbsp&nbsp
+{% if session.get("daibanno") > 0 %}
+            <span class="badge">{{session.get("daibanno")}}</span>
+{% endif %}
+        </a></li>
         <li id="navtag3" ><a  class="one_bar" id="navtag3a" href="{{ url_for("home.startapproval") }}"><span
                 class="glyphicon glyphicon-share"></span>&nbsp;&nbsp;发起流程</a></li>
         <li id="navtag4"><a  class="one_bar" id="navtag4a" href="{{ url_for("home.L1L2approval") }}"><span

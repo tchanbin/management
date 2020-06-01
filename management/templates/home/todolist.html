@@ -1,0 +1,69 @@
+{% extends 'home/homebase.html' %}
+
+{% block title %}我的待办流程{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/index.css") }}">
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="panel panel-primary">
+        <div class="panel-heading text-center">我的待办流程</div>
+        <table class="table table-striped table-bordered table-hover table-responsive text-left" id="table"
+               data-resizable="true">
+            <thead>
+            <tr>
+                <th>序号</th>
+                <th>流程名称</th>
+                <th>发起人</th>
+                <th>发起部门</th>
+                <th>接收时间</th>
+                <th>查看详情</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if  my_procedure %}
+                {% for my_procedure in my_procedure %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ my_procedure.ProcedureApproval.procedure_approval_flowname }}</td>
+                        <td>{{ my_procedure.CarProcedureInfo.users.username }}</td>
+                        <td>{{ my_procedure.CarProcedureInfo.department }}</td>
+                        <td>{{ my_procedure.CarProcedureInfo.approval_time }}</td>
+                        <td><a id="{{ my_procedure.id }}" class="query"
+                               href="{{ url_for("home.carproceduremodal",procedure_id=my_procedure.CarProcedureInfo.id,procedure_door="write") }}"
+                               data-toggle="modal">办理流程</a></td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    {#   插入成功提示#}
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'error',//消息类型。error、info、success
+                    hideAfter: 3,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
+
+{% endblock %}
+
