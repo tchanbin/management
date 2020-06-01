@@ -977,9 +977,10 @@ def addnewuser():
     name = form.name.data
     if not name:
         flash("姓名不能为空，请重新提交")
-    if form.validate_on_submit():
-
-        department = request.form.get("department")
+    # if form.validate_on_submit():
+    else:
+        departmentid = int(request.form.get("department"))
+        department=CompanyDepartment.query.filter_by(id=departmentid).first().department
         newuser = User(username=form.name.data,
                        department=department,
                        role_id=form.roleid.data,
