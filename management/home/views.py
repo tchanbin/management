@@ -1,10 +1,10 @@
 from flask import render_template, redirect, url_for, abort, flash, request, \
     current_app, make_response, g, session, Response, jsonify, json
-from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm, AddNewUser, PackageProcedureForm, OutMilesForm, \
-    L2approvalnok
+from .forms import LoginForm, ResetPwd, CarProcedureForm, MilesForm, AddNewUserForm, PackageProcedureForm, OutMilesForm, \
+    L2approvalnok, AlterUserForm
 from flask_login import login_required, current_user, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import and_, or_, extract
+from sqlalchemy import and_, or_, extract, func
 from ..models import Permission, Role, User, CarProcedureInfo, CarList, ProcedureList, PackageProcedureInfo, \
     CompanyDepartment, times, ProcedureApproval, ProcedureLine, ProcedureNode, ProcedureState, FieldPermission
 from . import home
@@ -115,38 +115,165 @@ def carindex():
     return render_template("home/carindex.html", my_procedure=my_procedure, pagination=pagination)
 
 
-# @home.before_request
-# def daiban():
-#     # if current_user.is_authenticated:
-#         g.daibanno = ProcedureApproval.query.filter(
-#             ProcedureApproval.procedure_approval_user_id == current_user.id,
-#             ProcedureApproval.procedure_approval_state == 1).count()
-
-
 # 我的待办流程
 @home.route("/todolist", methods=["GET", "POST"])
 @login_required
 @permission_required(Permission.APPLY)
 def todolist():
     page = request.args.get("page", 1, type=int)
-    keywords = request.args.get("keywords", "")
+    # 角色为管理员的可以看见所有运行中的流程信息
+    if current_user.role_id == 5:
+        pagination = ProcedureApproval.query.join(User,
+                                                  ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
+            User).filter(
+            ProcedureApproval.procedure_approval_state == 1,
+        ).order_by(
+            ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
+        ["FLASKY_PER_PAGE"], error_out=False)
+        daibanno = ProcedureApproval.query.filter(
+            ProcedureApproval.procedure_approval_state == 1).count()
+        session["daibanno"] = daibanno
+    #     保安可以看见自己相关的信息
+    elif current_user.role_id == 2:
+        pagination = ProcedureApproval.query.join(CarProcedureInfo,
+                                                  ProcedureApproval.procedure_approval_flowid == CarProcedureInfo.id).add_entity(
+            CarProcedureInfo).filter(
+            ProcedureApproval.procedure_approval_current_line_node_id.in_(["4", "5"]),
+            ProcedureApproval.procedure_approval_state == 1,
+        ).order_by(
+            ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
+        ["FLASKY_PER_PAGE"], error_out=False)
+        daibanno = ProcedureApproval.query.filter(
+            ProcedureApproval.procedure_approval_current_line_node_id.in_(["4", "5"]),
+            ProcedureApproval.procedure_approval_state == 1).count()
+        session["daibanno"] = daibanno
+    #     普通用户和经理可以看见自己的待办信息
+    else:
+        pagination = ProcedureApproval.query.join(User,
+                                                  ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
+            User).filter(
+            ProcedureApproval.procedure_approval_user_id == current_user.id,
 
-    daibanno = ProcedureApproval.query.filter(
-        ProcedureApproval.procedure_approval_user_id == current_user.id,
-        ProcedureApproval.procedure_approval_state == 1).count()
-    session["daibanno"] = daibanno
-    pagination = ProcedureApproval.query.join(CarProcedureInfo,
-                                              ProcedureApproval.procedure_approval_flowid == CarProcedureInfo.id).add_entity(
-        CarProcedureInfo).filter(
-        ProcedureApproval.procedure_approval_user_id == current_user.id,
-        ProcedureApproval.procedure_approval_approval_datetime.contains(keywords),
-        ProcedureApproval.procedure_approval_state == 1,
-    ).order_by(
-        ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
-    ["FLASKY_PER_PAGE"], error_out=False)
+            ProcedureApproval.procedure_approval_state.in_(["0", "1"]),
+        ).order_by(
+            ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
+        ["FLASKY_PER_PAGE"], error_out=False)
+        daibanno = ProcedureApproval.query.filter(
+            ProcedureApproval.procedure_approval_user_id == current_user.id,
+            ProcedureApproval.procedure_approval_state == 1).count()
+        session["daibanno"] = daibanno
     my_procedure = pagination.items
 
     return render_template("home/todolist.html", my_procedure=my_procedure, pagination=pagination)
+
+
+# 我的发起的所有的流程
+@home.route("/myprocedures", methods=["GET", "POST"])
+@login_required
+def myprocedures():
+    page = request.args.get("page", 1, type=int)
+    procedurename = request.args.get("procedurename", "")
+    procedurestate = request.args.get("procedurestate", "")
+    proceduredate = request.args.get("proceduredate", "")
+    # 角色为管理员的可以看见所有运行中的流程信息
+    if current_user.role_id == 5:
+
+        pagination = ProcedureApproval.query.join(User,
+                                                  ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
+            User).join(ProcedureState,
+                       ProcedureApproval.procedure_approval_flowid == ProcedureState.procedure_state_flowid).add_entity(
+            ProcedureState).filter(
+
+            ProcedureApproval.procedure_approval_current_line_node_id == 1,
+            ProcedureApproval.procedure_approval_flowname.contains(procedurename),
+            ProcedureApproval.procedure_approval_approval_datetime.contains(proceduredate),
+            ProcedureState.procedure_state.contains(procedurestate),
+
+        ).with_entities(
+
+            ProcedureApproval.procedure_approval_flowid,
+            ProcedureApproval.procedure_approval_flowname,
+            ProcedureState.procedure_state,
+            func.max(ProcedureApproval.procedure_approval_approval_datetime).label("approval_datetime"),
+            ProcedureApproval.procedure_approval_flowmodal,
+        ).group_by(ProcedureApproval.procedure_approval_flowid).order_by(
+            ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
+        ["FLASKY_PER_PAGE"], error_out=False)
+    else:
+        pagination = ProcedureApproval.query.join(User,
+                                                  ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
+            User).join(ProcedureState,
+                       ProcedureApproval.procedure_approval_flowid == ProcedureState.procedure_state_flowid).add_entity(
+            ProcedureState).filter(
+            ProcedureApproval.procedure_approval_user_id == current_user.id,
+            ProcedureApproval.procedure_approval_current_line_node_id == 1,
+            ProcedureApproval.procedure_approval_flowname.contains(procedurename),
+            ProcedureApproval.procedure_approval_approval_datetime.contains(proceduredate),
+            ProcedureState.procedure_state.contains(procedurestate),
+
+        ).with_entities(
+
+            ProcedureApproval.procedure_approval_flowid,
+            ProcedureApproval.procedure_approval_flowname,
+            ProcedureState.procedure_state,
+            func.max(ProcedureApproval.procedure_approval_approval_datetime).label("approval_datetime"),
+            ProcedureApproval.procedure_approval_flowmodal,
+        ).group_by(ProcedureApproval.procedure_approval_flowid).order_by(
+            ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
+        ["FLASKY_PER_PAGE"], error_out=False)
+
+    my_procedure = pagination.items
+
+    return render_template("home/myprocedures.html", my_procedure=my_procedure, pagination=pagination,
+                           procedurename=procedurename,
+                           procedurestate=procedurestate, proceduredate=proceduredate)
+
+
+# 我的所有已办流程（不是发起，而是经过审批的流程）
+@home.route("/doneprocedures", methods=["GET", "POST"])
+@login_required
+def doneprocedures():
+    page = request.args.get("page", 1, type=int)
+    procedurename = request.args.get("procedurename", "")
+    procedurestate = request.args.get("procedurestate", "")
+    proceduredate = request.args.get("proceduredate", "")
+    # 找到所有审批人的流程的32位ID，形成列表
+    procedures2 = db.session.query(ProcedureApproval.procedure_approval_flowid).filter(
+        ProcedureApproval.procedure_approval_user_id == current_user.id,
+        ProcedureApproval.procedure_approval_current_line_node_id != 1,
+        ProcedureApproval.procedure_approval_state == 2,
+    ).distinct()
+    list = [c.procedure_approval_flowid for c in procedures2]
+    # 在流程状态中按照列表进行查询
+    pagination = ProcedureState.query.join(User,
+                                           ProcedureState.procedure_state_user_id == User.id).add_entity(
+        User).join(ProcedureApproval,
+                   ProcedureState.procedure_state_flowid == ProcedureApproval.procedure_approval_flowid).add_entity(
+        ProcedureApproval).filter(
+        ProcedureState.procedure_state_flowid.in_(list),
+
+        ProcedureApproval.procedure_approval_current_line_node_id == 1,
+        ProcedureApproval.procedure_approval_flowname.contains(procedurename),
+        ProcedureApproval.procedure_approval_approval_datetime.contains(proceduredate),
+        ProcedureState.procedure_state.contains(procedurestate),
+
+    ).with_entities(
+
+        ProcedureState.procedure_state_name,
+        ProcedureState.procedure_state,
+        User.username,
+        func.max(ProcedureApproval.procedure_approval_approval_datetime).label("approval_datetime"),
+        ProcedureState.procedure_state_flowmodal,
+        ProcedureState.procedure_state_flowid,
+    ).group_by(ProcedureApproval.procedure_approval_flowid).order_by(
+        ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
+    ["FLASKY_PER_PAGE"], error_out=False)
+
+    my_procedure = pagination.items
+
+    return render_template("home/doneprocedures.html", my_procedure=my_procedure, pagination=pagination,
+                           procedurename=procedurename,
+                           procedurestate=procedurestate, proceduredate=proceduredate)
 
 
 # 快递流程主页
@@ -201,7 +328,7 @@ def procedureapproval1():
                                                    User.role_id.in_(["3", "4", "5"]))]
     # 查找到所有二级审批通过的车的申请信息
     carusestatus = CarProcedureInfo.query.filter(
-        CarProcedureInfo.state == 2
+        CarProcedureInfo.state.in_(["2", "3"], )
     ).order_by(CarProcedureInfo.book_start_datetime.desc()).all()
     # 对表单的提交内容进行验证
     if form.validate_on_submit():
@@ -226,19 +353,42 @@ def procedureapproval1():
                                                   state=1
 
                                                   )
+        car = CarList.query.filter_by(id=form.carname.data).first()
+
+        procedure_approval1 = ProcedureApproval(procedure_approval_flowid=flowid,
+                                                procedure_approval_flowname=current_user.username + "的" + car.name + "用车流程申请",
+                                                procedure_approval_current_line_node_id=1,
+                                                procedure_approval_user_id=current_user.id,
+                                                procedure_approval_flowmodal="carproceduremodal",
+                                                procedure_approval_approval_datetime=datetime.now(),
+                                                procedure_approval_state=2
+                                                )
         procedure_approval = ProcedureApproval(procedure_approval_flowid=flowid,
-                                               procedure_approval_flowname="用车流程申请",
+                                               procedure_approval_flowname=current_user.username + "的" + car.name + "用车流程申请",
                                                procedure_approval_current_line_node_id=2,
                                                procedure_approval_user_id=form.approvaluser.data,
+                                               procedure_approval_flowmodal="carproceduremodal",
+                                               procedure_approval_approval_datetime=datetime.now(),
                                                procedure_approval_state=1
                                                )
+        procedure_state = ProcedureState(
+            procedure_state_flowid=flowid,
+            procedure_state_name=current_user.username + "的" + car.name + "用车流程申请",
+            procedure_state=1,
+            procedure_state_flowmodal="carproceduremodal",
+            procedure_state_procedure_list_name="公务用车申请表",
+            procedure_state_user_id=current_user.id
+
+        )
 
         db.session.add(car_procedure_approval)
+        db.session.add(procedure_approval1)
         db.session.add(procedure_approval)
+        db.session.add(procedure_state)
         try:
             db.session.commit()
             flash("您的用车申请已经提交成功，请到我的流程查看")
-            return redirect(url_for("home.indexlist"))
+            return redirect(url_for("home.myprocedures"))
         except:
             db.session.rollback()
             flash("提交数据失败")
@@ -252,6 +402,7 @@ def procedureapproval1():
 @login_required
 @permission_required(Permission.APPLY)
 def carproceduremodal():
+    # 进入流程申请的模板
     if request.method == "GET":
         # 生成公务用车流程申请表单对象
         form = CarProcedureForm()
@@ -265,35 +416,382 @@ def carproceduremodal():
         myprocedure = CarProcedureInfo.query.join(ProcedureApproval,
                                                   CarProcedureInfo.id == ProcedureApproval.procedure_approval_flowid).add_entity(
             ProcedureApproval).filter(CarProcedureInfo.id == procedure_id).first()
+        rejectnodes = [(c.procedure_line_next_line_id, c.procedure_line_description) for c in
+                       ProcedureLine.query.filter(
+                           ProcedureLine.procedure_line_flowmodal == myprocedure.ProcedureApproval.procedure_approval_flowmodal,
+                           ProcedureLine.procedure_line_pre_line_id == myprocedure.CarProcedureInfo.current_line_node_id,
+                           ProcedureLine.procedure_line_next_line_id < myprocedure.CarProcedureInfo.current_line_node_id)]
         # 获得当前该条流程的节点值
-        current_node = myprocedure.CarProcedureInfo.current_line_node_id
-        filedpermissions = FieldPermission.query.filter(
-            FieldPermission.field_permission_node == current_node,
-            FieldPermission.field_permission_flowmodal == "carprocedure").all()
-        for filedpermission in filedpermissions:
-            if filedpermission.field_permission_read == "1":
-                # 获取字段权限表的字段名称
-                filedname = filedpermission.field_permission_field_name
-                # 找到Form中该字段对应的属性，并修改赋值其属性为不可用。
-                getattr(form, filedname).render_kw = {"disabled": "disabled"}
+        if myprocedure:
+            # 通过入门的只读属性判断是否是只读，指定了第6个专属设置只读的节点，因为是通过节点控制权限。
+            if procedure_door == "read":
+                current_node = 6
+            else:
+                current_node = myprocedure.CarProcedureInfo.current_line_node_id
+            form.carname.data = myprocedure.CarProcedureInfo.car_id
+            form.bookstartdatetime.data = myprocedure.CarProcedureInfo.book_start_datetime
+            form.bookenddatetime.data = myprocedure.CarProcedureInfo.book_end_datetime
+            form.arrivalplace.data = myprocedure.CarProcedureInfo.arrival_place
+            form.namelist.data = myprocedure.CarProcedureInfo.namelist
+            form.number.data = myprocedure.CarProcedureInfo.number
+            form.reason.data = myprocedure.CarProcedureInfo.reason
+            form.ifetc.data = myprocedure.CarProcedureInfo.etc
+            form.driver.data = myprocedure.CarProcedureInfo.driver
+            if current_node == 1:
+                form.approvaluser.choices = [(c.id, c.username) for c in
+                                             User.query.filter(User.company == current_user.company,
+                                                               User.department == current_user.department,
+                                                               User.role_id.in_(["3", "4"]))]
+            elif current_node == 2:
+                form.approvaluser.choices = [(c.id, c.username) for c in
+                                             User.query.filter(User.company == current_user.company,
 
-        form.carname.data = myprocedure.CarProcedureInfo.car_id
-        form.bookstartdatetime.data = myprocedure.CarProcedureInfo.book_start_datetime
-        form.bookenddatetime.data = myprocedure.CarProcedureInfo.book_end_datetime
-        form.arrivalplace.data = myprocedure.CarProcedureInfo.arrival_place
-        form.namelist.data = myprocedure.CarProcedureInfo.namelist
-        form.number.data = myprocedure.CarProcedureInfo.number
-        form.reason.data = myprocedure.CarProcedureInfo.reason
-        form.ifetc.data = myprocedure.CarProcedureInfo.etc
-        form.driver.data = myprocedure.CarProcedureInfo.driver
-        form.approvaluser.choices = [(c.id, c.username) for c in
-                                     User.query.filter(User.company == current_user.company,
-                                                       User.department == current_user.department,
-                                                       User.role_id.in_(["3", "4", "5"]))]
-        form.approvaluser.data=myprocedure.ProcedureApproval.procedure_approval_user_id
+                                                               User.role_id.in_(["4"]))]
+            else:
+                form.approvaluser.choices = [(c.id, c.username) for c in
+                                             User.query.filter(User.company == current_user.company,
+                                                               User.role_id.in_(["2"]))]
 
-    return render_template("home/carproceduremodal.html", current_time=datetime.utcnow(), form=form,
-                           myprocedure=myprocedure)
+            form.approvaluser.data = myprocedure.ProcedureApproval.procedure_approval_user_id
+            L1approvalreasons = ProcedureApproval.query.join(User,
+                                                             ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
+                User).filter(ProcedureApproval.procedure_approval_flowid == procedure_id,
+                             ProcedureApproval.procedure_approval_state == 2,
+                             ProcedureApproval.procedure_approval_current_line_node_id == 2
+                             )
+            L2approvalreasons = ProcedureApproval.query.join(User,
+                                                             ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
+                User).filter(ProcedureApproval.procedure_approval_flowid == procedure_id,
+                             ProcedureApproval.procedure_approval_state == 2,
+                             ProcedureApproval.procedure_approval_current_line_node_id == 3
+                             )
+            L3approvalreasons = ProcedureApproval.query.join(User,
+                                                             ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
+                User).join(CarProcedureInfo,
+                           ProcedureApproval.procedure_approval_flowid == CarProcedureInfo.id).add_entity(
+                CarProcedureInfo).filter(ProcedureApproval.procedure_approval_flowid == procedure_id,
+                                         ProcedureApproval.procedure_approval_state == 2,
+                                         ProcedureApproval.procedure_approval_current_line_node_id == 4
+                                         )
+            L4approvalreasons = ProcedureApproval.query.join(User,
+                                                             ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
+                User).join(CarProcedureInfo,
+                           ProcedureApproval.procedure_approval_flowid == CarProcedureInfo.id).add_entity(
+                CarProcedureInfo).filter(ProcedureApproval.procedure_approval_flowid == procedure_id,
+                                         ProcedureApproval.procedure_approval_state == 2,
+                                         ProcedureApproval.procedure_approval_current_line_node_id == 5
+                                         )
+
+            filedpermissions = FieldPermission.query.filter(
+                FieldPermission.field_permission_node == current_node,
+                FieldPermission.field_permission_flowmodal == "carprocedure").all()
+            for filedpermission in filedpermissions:
+                if filedpermission.field_permission_read == "1":
+                    # 获取字段权限表的字段名称
+                    filedname = filedpermission.field_permission_field_name
+                    # 找到Form中该字段对应的属性，并修改赋值其属性为不可用。
+                    getattr(form, filedname).render_kw = {"disabled": "disabled"}
+
+            return render_template("home/carproceduremodal.html", current_time=datetime.utcnow(), form=form,
+                                   myprocedure=myprocedure, L1approvalreasons=L1approvalreasons,
+                                   L2approvalreasons=L2approvalreasons, L3approvalreasons=L3approvalreasons,
+                                   L4approvalreasons=L4approvalreasons, current_node=current_node,
+                                   procedure_door=procedure_door, rejectnodes=rejectnodes)
+    # 提交用车流程申请
+    if request.method == "POST":
+        procedure_id = request.args.get("procedure_id")
+        if procedure_id:
+            car_procedure_info = CarProcedureInfo.query.filter_by(id=procedure_id).first()
+            node = car_procedure_info.current_line_node_id
+        procedure_door = request.args.get("procedure_door")
+        form = CarProcedureForm()
+        # 进入部门经理审批环节
+        # 判断是否是驳回
+        if request.values.get("sbbtn") == "reject":
+            rejectnode = request.form.get("rejectnode")
+            reject_procedure_id = request.form.get("reject_procedure_id")
+            rejectreason = request.form.get("rejectreason")
+            current_node_id = request.form.get("current_node_id")
+            # 拿到用车信息表并修改节点为驳回节点
+            car_procedure_info = CarProcedureInfo.query.filter_by(id=reject_procedure_id).first()
+            current_node_id = car_procedure_info.current_line_node_id
+            car_procedure_info.current_line_node_id = rejectnode
+            # 查找当前的审批节点,变更他的状态从1到2
+            reject_procedure_close = ProcedureApproval.query.filter(
+                ProcedureApproval.procedure_approval_flowid == reject_procedure_id,
+                ProcedureApproval.procedure_approval_current_line_node_id == current_node_id,
+                ProcedureApproval.procedure_approval_state == 1,
+            ).first()
+
+            reject_procedure_close.procedure_approval_state = 2
+            reject_procedure_close.procedure_approval_reason = rejectreason
+            reject_procedure_close.procedure_approval_user_id = current_user.id
+            # 找到应该驳回的节点的那条审批记录，并找到该条记录的审批人。
+            reject_procedure_close_pre = ProcedureApproval.query.filter(
+                ProcedureApproval.procedure_approval_flowid == reject_procedure_id,
+                ProcedureApproval.procedure_approval_current_line_node_id == rejectnode,
+            ).first()
+
+            rejectuserid = reject_procedure_close_pre.procedure_approval_user_id
+            # 拼接用户姓名
+            approval_name = car_procedure_info.users.username
+            carnamepinjie = car_procedure_info.cars.name
+
+            # 在审批表中新增驳回节点
+            reject_approval = ProcedureApproval(procedure_approval_flowid=reject_procedure_id,
+                                                procedure_approval_flowname=approval_name + "的" + carnamepinjie + "用车流程申请",
+                                                procedure_approval_current_line_node_id=rejectnode,
+                                                procedure_approval_user_id=rejectuserid,
+
+                                                procedure_approval_flowmodal="carproceduremodal",
+                                                procedure_approval_approval_datetime=datetime.now(),
+                                                procedure_approval_state=1
+                                                )
+
+            db.session.add(reject_approval)
+            db.session.add(reject_procedure_close)
+            db.session.add(reject_procedure_close_pre)
+
+            try:
+                db.session.commit()
+                flash("您的用车申请已经驳回成功")
+                return redirect(url_for("home.todolist"))
+            except:
+                db.session.rollback()
+                flash("提交数据失败")
+                abort(404)
+            return redirect(url_for("home.todolist"))
+        #     如果不是驳回正常进行审批，节点为1就是要进行驳回后的提交
+        # 如果是点击了取消按钮，则进入以下流程。
+        if request.values.get("sbbtn") == "cancel":
+            if request.values.get("sbbtn") == "cancel":
+
+                cancel_procedure_id = request.form.get("cancel_procedure_id")
+                cancelreason = request.form.get("cancelreason")
+
+                # 拿到用车信息表并修改节点为取消状态
+                car_procedure_info = CarProcedureInfo.query.filter_by(id=cancel_procedure_id).first()
+                current_node_id = car_procedure_info.current_line_node_id
+                car_procedure_info.state = 5
+                # 查找当前的审批节点,变更他的状态从1到2
+                cancel_procedure_close = ProcedureApproval.query.filter(
+                    ProcedureApproval.procedure_approval_flowid == cancel_procedure_id,
+                    ProcedureApproval.procedure_approval_current_line_node_id == current_node_id,
+                    ProcedureApproval.procedure_approval_state == 1,
+                ).first()
+
+                cancel_procedure_close.procedure_approval_state = 2
+                cancel_procedure_close.procedure_approval_reason = cancelreason
+                cancel_procedure_close.procedure_approval_user_id = current_user.id
+                #     去流程状态表里修改运行中的状态为完成
+                proedure_state = ProcedureState.query.filter_by(procedure_state_flowid=cancel_procedure_id).first()
+                proedure_state.procedure_state = 5
+                # 体积修改对象
+                db.session.add(proedure_state)
+                db.session.add(car_procedure_info)
+                db.session.add(cancel_procedure_close)
+
+                try:
+                    db.session.commit()
+                    flash("您的用车申请已经取消成功")
+                    return redirect(url_for("home.todolist"))
+                except:
+                    db.session.rollback()
+                    flash("提交数据失败")
+                    abort(404)
+                return redirect(url_for("home.todolist"))
+        if node == 1 and current_user.can(Permission.APPLY):
+            # 修改审批表的state从1变更为2
+            alter_approval_state = ProcedureApproval.query.filter_by(procedure_approval_flowid=procedure_id,
+                                                                     procedure_approval_current_line_node_id=1,
+                                                                     procedure_approval_state=1,
+                                                                     ).first()
+
+            alter_approval_state.procedure_approval_state = 2
+            alter_approval_state.procedure_approval_user_id = current_user.id
+            alter_approval_state.procedure_approval_approval_datetime = datetime.now()
+
+            # 启动下一审批节点，新增， 对用车审批表里的用车节点插入为2（部门经理审批），state设置为1
+            #  对流程进行流程名字拼接
+            approval_name = car_procedure_info.users.username
+            carnamepinjie = car_procedure_info.cars.name
+
+            procedure_approval = ProcedureApproval(procedure_approval_flowid=procedure_id,
+                                                   procedure_approval_flowname=approval_name + "的" + carnamepinjie + "用车流程申请",
+                                                   procedure_approval_current_line_node_id=2,
+                                                   procedure_approval_user_id=form.approvaluser.data,
+                                                   # procedure_approval_reason=form.L1approvereason.data,
+                                                   procedure_approval_flowmodal="carproceduremodal",
+                                                   procedure_approval_approval_datetime=datetime.now(),
+                                                   procedure_approval_state=1
+                                                   )
+            # 对用车流程信息表里的信息进行更新
+            car_procedure_info.car_id = form.carname.data
+            car_procedure_info.book_start_datetime = form.bookstartdatetime.data
+            car_procedure_info.book_end_datetime = form.bookenddatetime.data
+            car_procedure_info.arrival_place = form.arrivalplace.data
+            car_procedure_info.namelist = form.namelist.data
+            car_procedure_info.number = form.number.data
+            car_procedure_info.reason = form.reason.data
+            car_procedure_info.etc = form.ifetc.data
+            car_procedure_info.driver = form.driver.data
+
+            # 修改用车信息表的状态和节点
+            car_procedure_info.state = 1
+            car_procedure_info.current_line_node_id = 2
+
+        if node == 2 and current_user.can(Permission.L1_APPROVAL):
+
+            # 修改审批表的state从1变更为2
+            alter_approval_state = ProcedureApproval.query.filter_by(procedure_approval_flowid=procedure_id,
+                                                                     procedure_approval_current_line_node_id=2,
+                                                                     procedure_approval_state=1,
+                                                                     ).first()
+
+            alter_approval_state.procedure_approval_state = 2
+            alter_approval_state.procedure_approval_user_id = current_user.id
+            alter_approval_state.procedure_approval_approval_datetime = datetime.now()
+            if form.L1approvereason.data:
+                alter_approval_state.procedure_approval_reason = form.L1approvereason.data
+            alter_approval_state.procedure_approval_approval_datetime = datetime.now()
+
+            # 启动下一审批节点，新增， 对用车审批表里的用车节点插入为3（综管部经理审批），state设置为1
+            #  对流程进行流程名字拼接
+            approval_name = car_procedure_info.users.username
+            carnamepinjie = car_procedure_info.cars.name
+
+            procedure_approval = ProcedureApproval(procedure_approval_flowid=procedure_id,
+                                                   procedure_approval_flowname=approval_name + "的" + carnamepinjie + "用车流程申请",
+                                                   procedure_approval_current_line_node_id=3,
+                                                   procedure_approval_user_id=form.approvaluser.data,
+                                                   # procedure_approval_reason=form.L1approvereason.data,
+                                                   procedure_approval_flowmodal="carproceduremodal",
+                                                   procedure_approval_approval_datetime=datetime.now(),
+                                                   procedure_approval_state=1
+                                                   )
+            # 对用车流程信息表里的信息进行更新
+            car_procedure_info.car_id = form.carname.data
+            car_procedure_info.book_start_datetime = form.bookstartdatetime.data
+            car_procedure_info.book_end_datetime = form.bookenddatetime.data
+            car_procedure_info.arrival_place = form.arrivalplace.data
+            car_procedure_info.namelist = form.namelist.data
+            car_procedure_info.number = form.number.data
+            car_procedure_info.reason = form.reason.data
+            car_procedure_info.etc = form.ifetc.data
+            car_procedure_info.driver = form.driver.data
+
+            # 修改用车信息表的状态和节点
+            car_procedure_info.state = 1
+            car_procedure_info.current_line_node_id = 3
+        # 进入综管部经理审批环节
+        elif node == 3 and current_user.can(Permission.L2_APPROVAL):
+            # 修改审批表的state从1变更为2
+            alter_approval_state = ProcedureApproval.query.filter_by(procedure_approval_flowid=procedure_id,
+                                                                     procedure_approval_current_line_node_id=3,
+                                                                     procedure_approval_state=1, ).first()
+            alter_approval_state.procedure_approval_state = 2
+            alter_approval_state.procedure_approval_user_id = current_user.id
+            alter_approval_state.procedure_approval_approval_datetime = datetime.now()
+            if form.L2approvereason.data:
+                alter_approval_state.procedure_approval_reason = form.L2approvereason.data
+            alter_approval_state.procedure_approval_approval_datetime = datetime.now()
+
+            # 新增， 对用车审批表里的用车节点插入为4（保安出厂），state设置为1
+            #  对流程进行流程名字拼接
+            approval_name = car_procedure_info.users.username
+            carnamepinjie = car_procedure_info.cars.name
+            procedure_approval = ProcedureApproval(procedure_approval_flowid=procedure_id,
+                                                   procedure_approval_flowname=approval_name + "的" + carnamepinjie + "用车流程申请",
+                                                   procedure_approval_current_line_node_id=4,
+                                                   procedure_approval_user_id=form.approvaluser.data,
+                                                   # procedure_approval_reason=form.L2approvereason.data,
+                                                   procedure_approval_flowmodal="carproceduremodal",
+                                                   procedure_approval_approval_datetime=datetime.now(),
+                                                   procedure_approval_state=1
+                                                   )
+            # 对用车流程信息表里的信息进行更新
+            car_procedure_info.car_id = form.carname.data
+            car_procedure_info.book_start_datetime = form.bookstartdatetime.data
+            car_procedure_info.book_end_datetime = form.bookenddatetime.data
+            car_procedure_info.arrival_place = form.arrivalplace.data
+            car_procedure_info.namelist = form.namelist.data
+            car_procedure_info.number = form.number.data
+            car_procedure_info.reason = form.reason.data
+            car_procedure_info.etc = form.ifetc.data
+            car_procedure_info.driver = form.driver.data
+
+            # 修改用车信息表的状态和节点
+            car_procedure_info.state = 2
+            car_procedure_info.current_line_node_id = 4
+        # 保安确认出厂环节
+        elif node == 4 and current_user.can(Permission.CONFIRM):
+            # 修改审批表的state从1变更为2
+            alter_approval_state = ProcedureApproval.query.filter_by(procedure_approval_flowid=procedure_id,
+                                                                     procedure_approval_current_line_node_id=4,
+                                                                     procedure_approval_state=1,
+                                                                     ).first()
+            alter_approval_state.procedure_approval_state = 2
+            alter_approval_state.procedure_approval_user_id = current_user.id
+            alter_approval_state.procedure_approval_approval_datetime = datetime.now()
+            if form.L3approvereason.data:
+                alter_approval_state.procedure_approval_reason = form.L3approvereason.data
+            alter_approval_state.procedure_approval_approval_datetime = datetime.now()
+
+            # 新增， 对用车审批表里的用车节点插入为5（保安入厂），state设置为1
+            #  对流程进行流程名字拼接
+            approval_name = car_procedure_info.users.username
+            carnamepinjie = car_procedure_info.cars.name
+            procedure_approval = ProcedureApproval(procedure_approval_flowid=procedure_id,
+                                                   procedure_approval_flowname=approval_name + "的" + carnamepinjie + "用车流程申请",
+                                                   procedure_approval_current_line_node_id=5,
+                                                   procedure_approval_user_id=form.approvaluser.data,
+                                                   # procedure_approval_reason=form.L3approvereason.data,
+                                                   procedure_approval_flowmodal="carproceduremodal",
+                                                   procedure_approval_approval_datetime=datetime.now(),
+                                                   procedure_approval_state=1
+                                                   )
+            # 修改用车信息表的状态和节点
+            if form.outmiles.data:
+                car_procedure_info.outmiles = form.outmiles.data
+            car_procedure_info.state = 3
+            car_procedure_info.current_line_node_id = 5
+            car_procedure_info.actual_start_datetime = datetime.now()
+
+            # 保安确认入厂环节
+        elif node == 5 and current_user.can(Permission.CONFIRM):
+            # 修改审批表的state从1变更为2
+            alter_approval_state = ProcedureApproval.query.filter_by(procedure_approval_flowid=procedure_id,
+                                                                     procedure_approval_current_line_node_id=5,
+                                                                     procedure_approval_state=1,
+                                                                     ).first()
+            alter_approval_state.procedure_approval_state = 2
+            alter_approval_state.procedure_approval_user_id = current_user.id
+            alter_approval_state.procedure_approval_approval_datetime = datetime.now()
+            if form.L4approvereason.data:
+                alter_approval_state.procedure_approval_reason = form.L4approvereason.data
+            alter_approval_state.procedure_approval_approval_datetime = datetime.now()
+            car_procedure_info.state = 4
+            if form.miles.data:
+                car_procedure_info.miles = form.miles.data
+            car_procedure_info.actual_end_datetime = datetime.now()
+            #     去流程状态表里修改运行中的状态为完成
+            proedure_state = ProcedureState.query.filter_by(procedure_state_flowid=procedure_id).first()
+            proedure_state.procedure_state = 2
+            db.session.add(proedure_state)
+
+        db.session.add(alter_approval_state)
+        db.session.add(car_procedure_info)
+        if node != 5:
+            db.session.add(procedure_approval)
+        try:
+            db.session.commit()
+            flash("您的用车申请已经审批成功，请到我的流程查看")
+            return redirect(url_for("home.todolist"))
+        except:
+            db.session.rollback()
+            flash("提交数据失败")
+            abort(404)
+        return redirect(url_for("home.todolist"))
 
 
 # 快递流程申请表
@@ -1003,20 +1501,69 @@ def resetpwd():
 @login_required
 @permission_required(Permission.L2_APPROVAL)
 def usermanage():
-    form = AddNewUser()
-    form.department.choices = [(c.id, c.department) for c in
-                               CompanyDepartment.query.filter_by(company=current_user.company)]
-    page = request.args.get("page", 1, type=int)
-    keywords = request.args.get("keywords", "")
-    pagination = User.query.filter(User.username.contains(keywords),
-                                   User.status == "正常",
-                                   User.company == current_user.company,
-                                   ).order_by(
-        User.id.desc()).paginate(page, per_page=current_app.config
-    ["FLASKY_PER_PAGE"], error_out=False)
-    users = pagination.items
+    # if request.method == "GET":
+        form = AddNewUserForm()
+        form.department.choices = [(c.id, c.department) for c in
+                                   CompanyDepartment.query.filter_by(company=current_user.company)]
+        page = request.args.get("page", 1, type=int)
+        keywords = request.args.get("keywords", "")
+        pagination = User.query.filter(User.username.contains(keywords),
+                                       User.status == "正常",
+                                       User.company == current_user.company,
+                                       ).order_by(
+            User.id.desc()).paginate(page, per_page=current_app.config
+        ["FLASKY_PER_PAGE"], error_out=False)
+        users = pagination.items
+        # 获取部门的id并找到部门名称
+        departmentid = request.form.get("department")
+        departments = CompanyDepartment.query.filter_by(id=departmentid).first()
+        department = departments.department
+        if form.validate_on_submit():
 
-    return render_template("home/usermanage.html", users=users, pagination=pagination, form=form)
+            newuser = User(username=form.name.data,
+                           department=department,
+                           role_id=form.roleid.data,
+                           tel=form.tel.data,
+                           password="123456",
+                           status="正常",
+                           company=current_user.company
+                           )
+            db.session.add(newuser)
+            try:
+                db.session.commit()
+                flash("您已添加新员工{0}，密码为123456".format(form.name.data))
+            except:
+                db.session.rollback()
+                flash("用户已存在，添加失败")
+                return render_template("404.html")
+            return redirect(url_for("home.usermanage"))
+        return render_template("home/usermanage.html", users=users, pagination=pagination, form=form)
+    # if request.method == "Post":
+    #     form = AddNewUserForm()
+    #     name = form.name.data
+    #     if not name:
+    #         flash("姓名不能为空，请重新提交")
+    #     if form.validate_on_submit():
+    #
+    #         department = request.form.get("department")
+    #         newuser = User(username=form.name.data,
+    #                        department=department,
+    #                        role_id=form.roleid.data,
+    #                        tel=form.tel.data,
+    #                        password="123456",
+    #                        status="正常",
+    #                        company=current_user.company
+    #                        )
+    #
+    #         db.session.add(newuser)
+    #         try:
+    #             db.session.commit()
+    #             flash("您已添加新员工{0}，密码为123456".format(name))
+    #         except:
+    #             db.session.rollback()
+    #             flash("用户已存在，添加失败")
+    #             return render_template("404.html")
+    #     return redirect(url_for("home.usermanage"))
 
 
 # 对删除的用户进行标记
@@ -1072,7 +1619,7 @@ def resetcode(user_id):
 @login_required
 @permission_required(Permission.L2_APPROVAL)
 def addnewuser():
-    form = AddNewUser()
+    form = AddNewUserForm()
     name = form.name.data
     if not name:
         flash("姓名不能为空，请重新提交")

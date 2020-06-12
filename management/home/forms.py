@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, IntegerField, DateTimeField, \
-    SelectMultipleField, SelectField,TextAreaField
+    SelectMultipleField, SelectField, TextAreaField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from ..models import User
 
@@ -137,23 +137,53 @@ class CarProcedureForm(FlaskForm):
         render_kw={"required": False}
 
     )
+    miles = StringField(
+        label='部门经理审批意见',
+        # validators=[DataRequired("入厂公里数不能为空")],
+        render_kw={"required": False},
+
+    )
+    outmiles = StringField(
+        label='部门经理审批意见',
+        # validators=[DataRequired("审批意见不能为空")],
+        render_kw={"required": False},
+
+    )
     L1approvereason = StringField(
         label='部门经理审批意见',
-        validators=[DataRequired("审批意见不能为空")],
-        render_kw={"required": False}
+        # validators=[DataRequired("审批意见不能为空")],
+        render_kw={"required": False},
 
     )
-    L2approvereason = TextAreaField(
+    L2approvereason = StringField(
         label='综管部经理审批意见',
-        validators=[DataRequired("审批意见不能为空")],
+        # validators=[DataRequired("审批意见不能为空")],
         render_kw={"required": False}
 
     )
+    L3approvereason = StringField(
+        label='保安确认出厂',
+        # validators=[DataRequired("审批意见不能为空")],
+        render_kw={"required": False}
+
+    )
+    L4approvereason = StringField(
+        label='保安确认入厂',
+        # validators=[DataRequired("审批意见不能为空")],
+        render_kw={"required": False}
+
+    )
+    # procedurelinenode = SelectField(
+    #     label='流程节点',
+    #     coerce=int,
+    #     choices=[],
+    #     render_kw={"required": False}
+    #
+    # )
     submit = SubmitField(
         label="提交申请",
 
     )
-
 
 
 # 快递流程申请表单
@@ -213,6 +243,8 @@ class MilesForm(FlaskForm):
         label="提交申请",
 
     )
+
+
 # 保安确认出厂公里数
 class OutMilesForm(FlaskForm):
     outmiles = IntegerField(
@@ -232,9 +264,10 @@ class OutMilesForm(FlaskForm):
         label="提交申请",
 
     )
+
+
 # 二级审批拒绝原因
 class L2approvalnok(FlaskForm):
-
     rejectreason = StringField(
         label='拒绝原因',
         validators=[DataRequired("原因不能为空")],
@@ -252,8 +285,44 @@ class L2approvalnok(FlaskForm):
         label="提交申请",
 
     )
+
+
 # 添加新用户
-class AddNewUser(FlaskForm):
+class AddNewUserForm(FlaskForm):
+    name = StringField(
+        label='姓名',
+        validators=[DataRequired("姓名不能为空")],
+        render_kw={"required": False}
+
+    )
+    department = SelectField(
+        label='部门',
+        validators=[DataRequired("部门不能为空")],
+        coerce=int,
+        choices=[],
+        render_kw={"required": False}
+
+    )
+
+    tel = StringField(
+        label='电话',
+        render_kw={"required": False}
+
+    )
+
+    roleid = IntegerField(
+        label='角色',
+        validators=[DataRequired("姓名不能为空")],
+        render_kw={"required": False}
+
+    )
+
+    submit = SubmitField(
+        label="提交申请",
+
+    )
+# 添加新用户
+class AlterUserForm(FlaskForm):
     name = StringField(
         label='姓名',
         validators=[DataRequired("姓名不能为空")],

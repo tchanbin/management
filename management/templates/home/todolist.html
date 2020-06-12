@@ -17,8 +17,6 @@
             <tr>
                 <th>序号</th>
                 <th>流程名称</th>
-                <th>发起人</th>
-                <th>发起部门</th>
                 <th>接收时间</th>
                 <th>查看详情</th>
             </tr>
@@ -29,11 +27,10 @@
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ my_procedure.ProcedureApproval.procedure_approval_flowname }}</td>
-                        <td>{{ my_procedure.CarProcedureInfo.users.username }}</td>
-                        <td>{{ my_procedure.CarProcedureInfo.department }}</td>
-                        <td>{{ my_procedure.CarProcedureInfo.approval_time }}</td>
+
+                        <td>{{ my_procedure.ProcedureApproval.procedure_approval_approval_datetime }}</td>
                         <td><a id="{{ my_procedure.id }}" class="query"
-                               href="{{ url_for("home.carproceduremodal",procedure_id=my_procedure.CarProcedureInfo.id,procedure_door="write") }}"
+                               href="{{ url_for("home.{0}".format(my_procedure.ProcedureApproval.procedure_approval_flowmodal),procedure_id=my_procedure.ProcedureApproval.procedure_approval_flowid,procedure_door="write") }}"
                                data-toggle="modal">办理流程</a></td>
                     </tr>
                 {% endfor %}

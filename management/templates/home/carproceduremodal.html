@@ -19,18 +19,26 @@
                     {{ form.csrf_token() }}
                     {#    功能按钮区#}
                     <br>
-                    <div class="btn-group" role="group" aria-label="...">
-                        <button type="submit" class="btn btn-info"><span class="glyphicon glyphicon-floppy-disk"></span>
-                            &nbsp;保存
-                        </button>
-                        <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span>
-                            &nbsp;提交
-                        </button>
-                        <button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span>&nbsp;驳回
-                        </button>
-                        <button type="button" class="btn btn-warning "><span class="glyphicon glyphicon-minus"></span>&nbsp;取消
-                        </button>
-                    </div>
+                    {% if procedure_door=="write" %}
+                        <div class="btn-group" role="group" aria-label="...">
+
+                            <button type="submit" class="btn btn-success" name="sbbtn" value="sbumit"><span
+                                    class="glyphicon glyphicon-ok"></span>
+                                &nbsp;提交
+                            </button>
+                            {% if current_user.can(Permission.L1_APPROVAL) and myprocedure.CarProcedureInfo.current_line_node_id!=1 %}
+                                <button type="button" class="btn btn-danger" data-toggle="modal"
+                                        data-target="#reject" data-whatever="1"><span
+                                        class="glyphicon glyphicon-remove"></span>&nbsp;驳回
+                                </button>
+
+                                <button type="button" class="btn btn-warning " data-toggle="modal"
+                                        data-target="#cancel" data-whatever="2"><span
+                                        class="glyphicon glyphicon-minus"></span>&nbsp;取消
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endif %}
 
                     <filedset>
                         <br>
@@ -161,43 +169,218 @@
                                 {% endif %}
 
                             </div>
-                            <div class="form-group col-md-4 form-inline ">
-                                <label for="approvaluser" class="starinfo"> 审批人：&nbsp&nbsp&nbsp&nbsp</label>
-                                {{ form.approvaluser(id="approvaluser",class="form-control") }}
-                                {% if form.approvaluser.errors %}
-                                    {% for err in form.approvaluser.errors %}
-                                        <span class="errinfo">{{ err }}</span>
-                                    {% endfor %}
-                                {% endif %}
+                            {% if procedure_door=="write" %}
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="approvaluser" class="starinfo">下一审批人：&nbsp&nbsp&nbsp&nbsp</label>
+                                    {{ form.approvaluser(id="approvaluser",class="form-control") }}
+                                    {% if form.approvaluser.errors %}
+                                        {% for err in form.approvaluser.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
 
-                            </div>
+                                </div>
+                            {% endif %}
                         </div>
-{#                        <div class="row text-center btn-block">#}
-{#                            {{ form.submit(class="btn btn-primary") }}#}
-{#                        </div>#}
+                        {#                        <div class="row text-center btn-block">#}
+                        {#                            {{ form.submit(class="btn btn-primary") }}#}
+                        {#                        </div>#}
                         {#                        <P>{% for msg in get_flashed_messages() %}#}
                         {#                            {{ msg }}#}
                         {#                        {% endfor %}#}
                         {#                        </P>#}
 
                     </filedset>
-                <filedset>
-                      <legend class="media"><span class="glyphicon glyphicon-menu-right"></span> &nbsp;审批信息</legend>
-                    <div class="row ">
-                        <div class="col-md-2"> <label for="L1approvereason" > 部门经理审批意见：&nbsp&nbsp&nbsp&nbsp</label></div>
-                       <div class="col-md-10">
-                            {{ form.L1approvereason(id="L1approvereason",class="form-control") }}
-                       </div>
+                    {#                审批信息的内容#}
+                    <filedset>
+                        <legend class="media"><span class="glyphicon glyphicon-menu-right"></span> &nbsp;审批信息</legend>
+                        <div class="row">
+                            <div class="col-md-3" style=" height:30px">
+                                <label for="L1approvereason" style="font-size: 18px">
+                                    部门经理审批意见：&nbsp&nbsp&nbsp&nbsp</label>
+                            </div>
+                            <div class="col-md-8">
+                                {% if L1approvalreasons %}
+                                    {% for L1 in L1approvalreasons %}
+                                        <label for="">审批人： {{ L1.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;审批日期：{{ L1.ProcedureApproval.procedure_approval_approval_datetime }}</label>
+                                        <br>
+                                        <label for="">{{ L1.ProcedureApproval.procedure_approval_reason }}</label>
+                                        <br>
+                                    {% endfor %}
+                                {% endif %}
 
-                    </div>
-                </filedset>
+                                {% if current_node==2 %}
+                                    {{ form.L1approvereason(id="L1approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意") }}
+                                {% endif %}
+                            </div>
+
+                        </div>
+                        <br>
+                        <div class="row ">
+                            <div class="col-md-3"><label for="L1approvereason" style="font-size: 18px">
+                                综管部经理审批意见：&nbsp&nbsp&nbsp&nbsp</label>
+                            </div>
+                            <div class="col-md-8">
+                                {% if L2approvalreasons %}
+                                    {% for L2 in L2approvalreasons %}
+                                        <label for="">审批人： {{ L2.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;审批日期：{{ L2.ProcedureApproval.procedure_approval_approval_datetime }}</label>
+                                        <br>
+                                        <label for="">{{ L2.ProcedureApproval.procedure_approval_reason }}</label>
+                                        <br>
+                                    {% endfor %}
+                                {% endif %}
+
+                                {% if current_node==3 %}
+                                    {{ form.L2approvereason(id="L2approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意") }}
+                                {% endif %}
+                            </div>
+
+                        </div>
+                        <br>
+                        <div class="row ">
+                            <div class="col-md-3"><label for="L1approvereason" style="font-size: 18px">
+                                保安确认出厂：&nbsp&nbsp&nbsp&nbsp</label>
+                            </div>
+                            <div class="col-md-8">
+                                {% if L3approvalreasons %}
+                                    {% for L3 in L3approvalreasons %}
+                                        <label for="">确认人： {{ L3.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;确认日期：{{ L3.ProcedureApproval.procedure_approval_approval_datetime }}</label>
+                                        <br>
+                                        <label for="">{{ L3.ProcedureApproval.procedure_approval_reason }}</label>
+                                        <label for="">出厂公里数{{ L3.CarProcedureInfo.outmiles }}</label>
+                                        <br>
+                                    {% endfor %}
+                                {% endif %}
+
+                                {% if current_node==4 %}
+                                    {{ form.L3approvereason(id="L3approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意出厂") }}
+                                    {{ form.outmiles(id="outmile",class="form-control",placeholder="请在此处填写出厂公里数") }}
+
+                                {% endif %}
+                            </div>
+
+                        </div>
+                        <br>
+                        <div class="row ">
+                            <div class="col-md-3"><label for="L4approvereason" style="font-size: 18px">保安确认入厂：&nbsp&nbsp&nbsp&nbsp</label>
+                            </div>
+                            <div class="col-md-8">
+                                {% if L4approvalreasons %}
+                                    {% for L4 in L4approvalreasons %}
+                                        <label for="">审批人： {{ L4.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;审批日期：{{ L4.ProcedureApproval.procedure_approval_approval_datetime }}</label>
+                                        <br>
+                                        <label for="">{{ L4.ProcedureApproval.procedure_approval_reason }}</label>
+                                        <label for="">出厂公里数{{ L4.CarProcedureInfo.miles }}</label>
+                                        <br>
+                                    {% endfor %}
+                                {% endif %}
+
+                                {% if current_node==5 %}
+                                    {{ form.L4approvereason(id="L4approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意进厂") }}
+                                    {{ form.miles(id="outmile",class="form-control",placeholder="请在此处填写入厂公里数") }}
+                                {% endif %}
+                            </div>
+
+                        </div>
+                        <br>
+                    </filedset>
                 </form>
             </div>
         </div>
     </div>
 
+    {#    弹出的用户驳回节点模态框#}
+    <form method="post"
+          action="{{ url_for("home.carproceduremodal") }}">
+        {{ form.csrf_token() }}
+        <div class="modal fade" id="reject" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">请选择驳回节点</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label hidden for="">驳回的流程id</label>
+                            <input hidden type="text" name="reject_procedure_id"
+                                   value={{ myprocedure.ProcedureApproval.procedure_approval_flowid }}>
+                            <br>
+                            <label class="control-label">驳回节点</label>
+                            <select name="rejectnode" id="rejectnode" class="form-control">
+                                {% for rejectnode in rejectnodes %}
+                                    <option value={{ rejectnode[0] }}>{{ rejectnode[1] }}</option>
+                                {% endfor %}
+
+                            </select>
+                            <label for="">驳回理由</label> <br>
+                            <input type="text" name="rejectreason" class="form-control" value="请修改申请内容">
+                            <label hidden for="">当前流程节点id</label>
+                            <input hidden type="text" name="current_node_id"
+                                   value={{ myprocedure.ProcedureApproval.procedure_approval_current_line_node_id }}>
+                            <br>
+
+                        </div>
 
 
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                        </button>
+                        <button type="submit" class="btn btn-default" name="sbbtn" value="reject">
+                            驳回
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
+    #    弹出的用户取消流程模态框#}
+    <form method="post"
+          action="{{ url_for("home.carproceduremodal") }}">
+        {{ form.csrf_token() }}
+        <div class="modal fade" id="cancel" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">请确认取消该流程</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="">
+                             <label for="">取消理由</label> <br>
+                            <input type="text" name="cancelreason" class="form-control" value="取消该流程"> <br>
+
+                            <label class="" style="font-size: small;font-family:华康宋体W3-A" for="">取消该流程后，该流程将不可编辑，仅可以去我的流程或者已办流程中查看。</label>
+                            <label hidden for="">当前流程节点id</label>
+                            <input hidden type="text" name="current_node_id"
+                                   value={{ myprocedure.ProcedureApproval.procedure_approval_current_line_node_id }}>
+                            <br>
+                            <label hidden for="">取消的流程id</label>
+                            <input hidden type="text" name="cancel_procedure_id"
+                                   value={{ myprocedure.ProcedureApproval.procedure_approval_flowid }}>
+                            <br>
+                        </div>
+
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                        </button>
+                        <button type="submit" class="btn btn-danger" name="sbbtn" value="cancel">
+                            取消
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
 {% endblock %}
 {% block scripts %}
     {{ super() }}
@@ -247,6 +430,20 @@
                 })
             {% endfor %}
         });
+    </script>
+
+    {#    驳回节点选择的模态框js#}
+    <script>
+
+        $('#reject').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) // Button that triggered the modal
+            var recipient = button.data('whatever') // Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this)
+            {#modal.find('.modal-title').text('New message to ' + recipient)#}
+            modal.find('#procedure_id').val(recipient)
+        })
     </script>
 
 {% endblock %}

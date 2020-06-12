@@ -59,6 +59,8 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
     department = db.Column(db.String(64))
+    departmentid = db.Column(db.Integer,db.ForeignKey("company_departments.id"))
+
     company = db.Column(db.String(64))
     tel = db.Column(db.String(15))
     password_hash = db.Column(db.String(128))
@@ -133,7 +135,9 @@ class CompanyDepartment(db.Model):
     __tablename__ = 'company_departments'
     id = db.Column(db.Integer, primary_key=True)
     company = db.Column(db.String(20))
+    departmentid = db.Column(db.Integer)
     department = db.Column(db.String(20))
+    usrdepartments = db.relationship('User', backref='departments', lazy='dynamic')
 
 
 # 流程清单表
@@ -144,6 +148,7 @@ class ProcedureList(db.Model):
     procedure_list_name = db.Column(db.String(20), unique=True)
     procedure_lists = db.relationship("CarProcedureInfo", backref="procedure_name", lazy='dynamic')
     procedure_list_department = db.Column(db.String(20))
+    procedure_list_departmentid =  db.Column(db.Integer)
     procedure_list_company = db.Column(db.String(20))
 
 # 车辆清单
@@ -187,9 +192,9 @@ class ProcedureApproval(db.Model):
     procedure_approval_flowname = db.Column(db.String(50))
     procedure_approval_current_line_node_id = db.Column(db.Integer)
     procedure_approval_user_id = db.Column(db.Integer)
-    procedure_approval_user_name = db.Column(db.String(25))
+    procedure_approval_flowmodal = db.Column(db.String(25))
     procedure_approval_reason = db.Column(db.String(25))
-    procedure_approval_approval_datetime = db.Column(db.DateTime(), default=datetime.now)
+    procedure_approval_approval_datetime = db.Column(db.DateTime())
     procedure_approval_state = db.Column(db.Integer)
 
 
@@ -228,6 +233,7 @@ class CarProcedureInfo(db.Model):
     users = db.relationship('User', foreign_keys=user_id, backref="car_procedure_infos",
                             single_parent=True)
     department = db.Column(db.String(64))
+    departmentid = db.Column(db.Integer)
     car_id = db.Column(db.Integer, db.ForeignKey('car_lists.id'))
     approval_time = db.Column(db.DateTime(), default=datetime.now)
     book_start_datetime = db.Column(db.DATETIME())
@@ -307,8 +313,10 @@ class PackageProcedureInfo(db.Model):
     payment_method = db.Column(db.String(15))
     approval_person = db.Column(db.String(15))
     approval_department = db.Column(db.String(15))
+    approval_departmentid= db.Column(db.Integer)
     collect_person = db.Column(db.String(15))
     collect_department = db.Column(db.String(15))
+    collect_departmentid = db.Column(db.Integer)
     status = db.Column(db.String(15))
     approval_time = db.Column(db.DateTime(), default=datetime.now)
     confirm_time = db.Column(db.DateTime())
