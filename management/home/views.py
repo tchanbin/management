@@ -324,7 +324,7 @@ def procedureapproval1():
     # 给审批经理的下拉列表找到审批人
     form.approvaluser.choices = [(c.id, c.username) for c in
                                  User.query.filter(User.company == current_user.company,
-                                                   User.department == current_user.department,
+                                                   User.departmentid == current_user.departmentid,
                                                    User.role_id.in_(["3", "4", "5"]))]
     # 查找到所有二级审批通过的车的申请信息
     carusestatus = CarProcedureInfo.query.filter(
@@ -337,7 +337,7 @@ def procedureapproval1():
                                                   procedure_list_id=1,
                                                   procedure_list_flowmodal="carprocedure",
                                                   user_id=current_user.id,
-                                                  department=current_user.department,
+                                                  departmentid=current_user.departmentid,
                                                   tel=form.tel.data,
                                                   car_id=form.carname.data,
                                                   book_start_datetime=form.bookstartdatetime.data,
@@ -440,7 +440,7 @@ def carproceduremodal():
             if current_node == 1:
                 form.approvaluser.choices = [(c.id, c.username) for c in
                                              User.query.filter(User.company == current_user.company,
-                                                               User.department == current_user.department,
+                                                               User.departmentid == current_user.departmentid,
                                                                User.role_id.in_(["3", "4"]))]
             elif current_node == 2:
                 form.approvaluser.choices = [(c.id, c.username) for c in
@@ -808,7 +808,7 @@ def procedureapproval2():
         collect_person = request.form.get("collect_person")
         user = User.query.filter_by(username=collect_person).first()
         if user:
-            collect_department = user.department
+            collect_departmentid = user.departmentid
             if payment_method == "寄付":
                 package_procedure_approval = PackageProcedureInfo(procedure_list_id=2,
                                                                   procedure_name="快递申请表",
@@ -817,10 +817,10 @@ def procedureapproval2():
                                                                   destination_company=form.destination_company.data,
                                                                   package_name=form.package_name.data,
                                                                   payment_method=payment_method,
-                                                                  approval_department=current_user.department,
+                                                                  approval_departmentid=current_user.departmentid,
                                                                   approval_person=current_user.username,
                                                                   collect_person=collect_person,
-                                                                  collect_department=collect_department,
+                                                                  collect_departmentid=collect_departmentid,
                                                                   status="待寄出"
 
                                                                   )
@@ -842,10 +842,10 @@ def procedureapproval2():
                                                                   destination_company=form.destination_company.data,
                                                                   package_name=form.package_name.data,
                                                                   payment_method=payment_method,
-                                                                  approval_department=current_user.department,
+                                                                  approval_departmentid=current_user.departmentid,
                                                                   approval_person=current_user.username,
                                                                   collect_person=collect_person,
-                                                                  collect_department=collect_department,
+                                                                  collect_departmentid=collect_departmentid,
                                                                   status="已收货",
                                                                   confirm_time=datetime.now()
 
@@ -1017,7 +1017,7 @@ def myapprovaledprocedure():
     page = request.args.get("page", 1, type=int)
     keywords = request.args.get("keywords", "")
     if not current_user.can(Permission.L2_APPROVAL):
-        pagination = CarProcedureInfo.query.filter(CarProcedureInfo.department == current_user.department,
+        pagination = CarProcedureInfo.query.filter(CarProcedureInfo.departmentid == current_user.departmentid,
                                                    CarProcedureInfo.approval_time.contains(keywords),
                                                    CarProcedureInfo.first_approval == current_user.id,
                                                    CarProcedureInfo.status1 == 1,
@@ -1516,12 +1516,12 @@ def usermanage():
         users = pagination.items
         # 获取部门的id并找到部门名称
         departmentid = request.form.get("department")
-        departments = CompanyDepartment.query.filter_by(id=departmentid).first()
-        department = departments.department
+        # departments = CompanyDepartment.query.filter_by(id=departmentid).first()
+        # department = departments.department
         if form.validate_on_submit():
 
             newuser = User(username=form.name.data,
-                           department=department,
+                           departmentid=departmentid,
                            role_id=form.roleid.data,
                            tel=form.tel.data,
                            password="123456",
