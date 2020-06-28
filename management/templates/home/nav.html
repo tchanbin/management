@@ -1,33 +1,30 @@
 <div id="nav">
     <ul class="nav nav-pills nav-stacked text-left">
-        <li id="navtag1"><a id="navtag1a"  class="one_bar" href="{{ url_for("home.resetpwd") }}"><span
+        <li id="navtag1"><a id="navtag1a" class="one_bar" href="{{ url_for("home.resetpwd") }}"><span
                 class="glyphicon glyphicon-edit"></span>&nbsp;&nbsp;修改密码</a></li>
-        <li id="navtag2"><a  class="one_bar" id="navtag2a" href="{{ url_for("home.todolist") }}"><span
+        <li id="navtag2"><a class="one_bar" id="navtag2a" href="{{ url_for("home.todolist") }}"><span
                 class="glyphicon glyphicon-tags"></span>&nbsp;&nbsp;我的待办&nbsp&nbsp
-{% if session.get("daibanno") > 0 %}
-            <span class="badge">{{session.get("daibanno")}}</span>
-{% endif %}
+            {% if session.get("daibanno") > 0 %}
+                <span class="badge">{{ session.get("daibanno") }}</span>
+            {% endif %}
         </a></li>
-        <li id="navtag3" ><a  class="one_bar" id="navtag3a" href="{{ url_for("home.startapproval") }}"><span
+        <li id="navtag3"><a class="one_bar" id="navtag3a" href="{{ url_for("home.startapproval") }}"><span
                 class="glyphicon glyphicon-share"></span>&nbsp;&nbsp;发起流程</a></li>
-        <li id="navtag4"><a  class="one_bar" id="navtag4a" href="{{ url_for("home.myprocedures") }}"><span
+        <li id="navtag4"><a class="one_bar" id="navtag4a" href="{{ url_for("home.myprocedures") }}"><span
                 class="glyphicon glyphicon-book"></span>&nbsp;&nbsp;我的流程</a></li>
-        <li id="navtag5" ><a  class="one_bar"id="navtag5a" href="{{ url_for("home.doneprocedures") }}"><span
+        <li id="navtag5"><a class="one_bar" id="navtag5a" href="{{ url_for("home.doneprocedures") }}"><span
                 class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;已办流程</a></li>
-        <li id="navtag6" ><a  class="one_bar" id="navtag6a" href="{{ url_for("home.confirmlist") }}"><span
-                class="glyphicon glyphicon-tasks"></span>&nbsp;&nbsp;确认流程</a></li>
-        <li id="navtag7" ><a  class="one_bar" id="navtag7a" href="{{ url_for("home.rejectedprocedure") }}"><span
-                class="glyphicon glyphicon-trash"></span>&nbsp;&nbsp;作废流程</a></li>
-        <li id="navtag8" ><a class="one_bar" id="navtag8a" href="{{ url_for("home.procedurelists") }}"><span class="
+
+        <li id="navtag8"><a class="one_bar" id="navtag8a" href="{{ url_for("home.procedurelists") }}"><span class="
 glyphicon glyphicon-list-alt"></span>&nbsp;&nbsp;流程清单</a></li>
         {% if current_user.can(Permission.L2_APPROVAL) %}
             <li id="navtag9">
-                <a id="navtag9a" class="one_bar" href="{{ url_for("home.usermanage") }}"><span class="glyphicon glyphicon-cog"></span>&nbsp;网站管理</a>
-{#                <ul id="navtag9b" class="two_bar">#}
-{#                    <li><a href="{{ url_for("home.usermanage") }}"><span class="glyphicon glyphicon-user"></span>&nbsp;用户管理</a>#}
-{#                    </li>#}
-{#                    <li><a href=""><span class="glyphicon glyphicon-th-large"></span>&nbsp;部门管理</a></li>#}
-{#                </ul>#}
+                <a id="navtag9a" class="one_bar" href="#"><span class="glyphicon glyphicon-cog"></span>&nbsp;网站管理</a>
+                <ul id="navtag9b" class="two_bar">
+                    <li id="navtag9b1"><a href="{{ url_for("home.usermanage") }}"><span class="glyphicon glyphicon-user"></span>&nbsp;用户管理</a>
+                    </li>
+                    <li id="navtag9b2"><a href="{{ url_for("home.departmentmanage") }}"><span class="glyphicon glyphicon-th-large"></span>&nbsp;部门管理</a></li>
+                </ul>
 
             </li>
         {% endif %}

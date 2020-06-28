@@ -8,282 +8,297 @@
 
 {% endblock %}
 {% block page_content %}
+    <div id="printdataid">
 
-    <div class="panel panel-primary ">
-        <div class="panel-heading text-center">用车流程申请表</div>
+        <div class="panel panel-primary  ">
+            <div class="panel-heading text-center">用车流程申请表</div>
 
 
-        <div class="container">
-            <div class="row">
-                <form action="" id="carproceduremodal" method="post">
-                    {{ form.csrf_token() }}
-                    {#    功能按钮区#}
-                    <br>
-                    {% if procedure_door=="write" %}
-                        <div class="btn-group" role="group" aria-label="...">
-
-                            <button type="submit" class="btn btn-success" name="sbbtn" value="sbumit"><span
-                                    class="glyphicon glyphicon-ok"></span>
-                                &nbsp;提交
-                            </button>
-                            {% if current_user.can(Permission.L1_APPROVAL) and myprocedure.CarProcedureInfo.current_line_node_id!=1 %}
-                                <button type="button" class="btn btn-danger" data-toggle="modal"
-                                        data-target="#reject" data-whatever="1"><span
-                                        class="glyphicon glyphicon-remove"></span>&nbsp;驳回
-                                </button>
-
-                                <button type="button" class="btn btn-warning " data-toggle="modal"
-                                        data-target="#cancel" data-whatever="2"><span
-                                        class="glyphicon glyphicon-minus"></span>&nbsp;取消
-                                </button>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-
-                    <filedset>
+            <div class="container">
+                <div class="row">
+                    <form action="" id="carproceduremodal" method="post">
+                        {{ form.csrf_token() }}
+                        {#    功能按钮区#}
                         <br>
-                        <legend class="media "><span class="glyphicon glyphicon-menu-right"></span> &nbsp;基本信息</legend>
-                        <div class="row">
-                            <div class="form-group col-md-2">
-                                <label for="">用户姓名：</label>
-                                <label for="">{{ myprocedure.CarProcedureInfo.users.username }}</label>
-                            </div>
-                            <div class="form-group col-md-2">
-                                <label for="">公司：</label>
-                                <label for="">{{ myprocedure.CarProcedureInfo.users.company }}</label>
-                            </div>
-                            <div class="form-group col-md-2">
-                                <label for="">部门：</label>
-                                <label for="">{{ myprocedure.CarProcedureInfo.department }}</label>
-                            </div>
-                            <div class="form-group col-md-3 form-inline ">
-                                <label for="" class="starinfo">电话：</label>
-                                <label for="">{{ myprocedure.CarProcedureInfo.users.tel }}</label> <br>
-                            </div>
-                            <div class="form-group col-md-3">
-                                <label for="">发起日期：</label>
-                                <label for="">{{ myprocedure.CarProcedureInfo.approval_time }}</label>
+                        {% if procedure_door=="write" %}
+                            <div class="btn-group" role="group" aria-label="...">
 
-                            </div>
-                        </div>
+                                <button type="submit" class="btn btn-success" name="sbbtn" value="sbumit"><span
+                                        class="glyphicon glyphicon-ok"></span>
+                                    &nbsp;提交
+                                </button>
+                                {% if current_user.can(Permission.L1_APPROVAL) and myprocedure.CarProcedureInfo.current_line_node_id!=1 %}
+                                    <button type="button" class="btn btn-danger" data-toggle="modal"
+                                            data-target="#reject" data-whatever="1"><span
+                                            class="glyphicon glyphicon-remove"></span>&nbsp;驳回
+                                    </button>
 
-                    </filedset>
-                    <filedset>
-                        <legend class="media"><span class="glyphicon glyphicon-menu-right"></span> &nbsp;流程信息</legend>
-                        <div class="row">
-                            <div class="form-group col-md-4 form-inline">
-                                <label for="" class="starinfo">申请车型：</label>
-                                {{ form.carname (class="form-control") }}
-                                {% if form.carname.errors %}
-                                    {% for err in form.carname.errors %}
-                                        <span class="errinfo">{{ err }}</span>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            <div class="form-group col-md-4 form-inline">
-                                <label for="bookstartdatetime" class="starinfo">预约开始时间：</label>
-                                {{ form.bookstartdatetime(class="form-control",autocomplete="off") }}
-                                <br> {% if form.bookstartdatetime.errors %}
-                                {% for err in form.bookstartdatetime.errors %}
-                                    <span class="errinfo">{{ err }}</span>
-                                {% endfor %}
-                            {% endif %}
-
-                            </div>
-                            <div class="form-group col-md-4 form-inline ">
-                                <label for="bookenddatetime" class="starinfo">预约结束时间：</label>
-                                {#                                <input type="text" id="bookenddatetime" name="bookenddatetime" class="form-control"#}
-                                {#                                       autocomplete="off">#}
-                                {{ form.bookenddatetime(class="form-control",autocomplete="off") }}<br>
-                                {% if form.bookenddatetime.errors %}
-                                    {% for err in form.bookenddatetime.errors %}
-                                        <span class="errinfo">{{ err }}</span>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-group col-md-4 form-inline ">
-                                <label for="arrivalplace" class="starinfo">到达地点：</label>
-                                {{ form.arrivalplace(id="arrivalplace",class="form-control") }}<br>
-                                {% if form.arrivalplace.errors %}
-                                    {% for err in form.arrivalplace.errors %}
-                                        <span class="errinfo">{{ err }}</span>
-                                    {% endfor %}
-                                {% endif %}
-
-                            </div>
-                            <div class="form-group col-md-4 form-inline ">
-                                <label for="namelist">乘车名单：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
-                                {{ form.namelist(id="namelist",class="form-control") }}
-                                {% if form.namelist.errors %}
-                                    {% for err in form.namelist.errors %}
-                                        <span class="errinfo">{{ err }}</span>
-                                    {% endfor %}
-                                {% endif %}
-
-                            </div>
-                            <div class="form-group col-md-4 form-inline ">
-                                <label for="number">乘车人数：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
-                                {{ form.number(id="number",class="form-control") }}<br>
-                                {% if form.number.errors %}
-                                    {% for err in form.number.errors %}
-                                        <span class="errinfo">{{ err }}</span>
-                                    {% endfor %}
+                                    <button type="button" class="btn btn-warning " data-toggle="modal"
+                                            data-target="#cancel" data-whatever="2"><span
+                                            class="glyphicon glyphicon-minus"></span>&nbsp;取消
+                                    </button>
                                 {% endif %}
 
                             </div>
 
 
-                        </div>
-                        <div class="row">
+                        {% endif %}
+                    &nbsp;
+                        <button type="button" class="btn btn-info"
+                                id="printbtn" onclick="printdata();"><span
+                                class="glyphicon glyphicon-print" ></span>&nbsp;打印
+                        </button>
 
-                            <div class="form-group col-md-6 form-inline ">
-                                <label for="reason" class="starinfo">用车原因：</label>
-                                {{ form.reason(id="reason",class="form-control",style="width:80%",placeholder="私车公用请在此处填写车牌号") }}<br>
-                                {% if form.reason.errors %}
-                                    {% for err in form.reason.errors %}
+                     [<a href='javascript:history.go(0)'>刷新</a>]
+
+                        <filedset id="printdata1">
+                            <br>
+                            <legend class="media "><span class="glyphicon glyphicon-menu-right"></span> &nbsp;基本信息
+                            </legend>
+                            <div class="row">
+                                <div class="form-group col-md-2">
+                                    <label for="">用户姓名：</label>
+                                    <label for="">{{ myprocedure.User.username }}</label>
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="">公司：</label>
+                                    <label for="">{{ myprocedure.User.company }}</label>
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="">部门：</label>
+                                    <label for="">{{ myprocedure.User.departments.department }}</label>
+                                </div>
+                                <div class="form-group col-md-3 form-inline ">
+                                    <label for="" class="starinfo">电话：</label>
+                                    <label for="">{{ myprocedure.CarProcedureInfo.users.tel }}</label> <br>
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label for="">发起日期：</label>
+                                    <label for="">{{ myprocedure.CarProcedureInfo.approval_time }}</label>
+
+                                </div>
+                            </div>
+
+                        </filedset>
+                        <filedset id="printdata2">
+                            <legend class="media"><span class="glyphicon glyphicon-menu-right"></span> &nbsp;流程信息
+                            </legend>
+                            <div class="row">
+                                <div class="form-group col-md-4 form-inline">
+                                    <label for="" class="starinfo">申请车型：</label>
+                                    {{ form.carname (class="form-control") }}
+                                    {% if form.carname.errors %}
+                                        {% for err in form.carname.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="form-group col-md-4 form-inline">
+                                    <label for="bookstartdatetime" class="starinfo">预约开始时间：</label>
+                                    {{ form.bookstartdatetime(class="form-control",autocomplete="off") }}
+                                    <br> {% if form.bookstartdatetime.errors %}
+                                    {% for err in form.bookstartdatetime.errors %}
                                         <span class="errinfo">{{ err }}</span>
                                     {% endfor %}
                                 {% endif %}
 
-                            </div>
-                            <div class="form-group col-md-2 form-inline ">
-                                <label for="ifetc" class="starinfo">ETC：</label>
-                                {{ form.ifetc(id="ifetc") }}
-                                {% if form.ifetc.errors %}
-                                    {% for err in form.ifetc.errors %}
-                                        <span class="errinfo">{{ err }}</span>
-                                    {% endfor %}
-                                {% endif %}
-
-                            </div>
-                            <div class="form-group col-md-4 form-inline ">
-                                <label for="driver" class="starinfo"> 驾 驶
-                                    员：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
-                                {{ form.driver(id="driver",class="form-control") }}
-                                {% if form.driver.errors %}
-                                    {% for err in form.driver.errors %}
-                                        <span class="errinfo">{{ err }}</span>
-                                    {% endfor %}
-                                {% endif %}
-
-                            </div>
-                            {% if procedure_door=="write" %}
+                                </div>
                                 <div class="form-group col-md-4 form-inline ">
-                                    <label for="approvaluser" class="starinfo">下一审批人：&nbsp&nbsp&nbsp&nbsp</label>
-                                    {{ form.approvaluser(id="approvaluser",class="form-control") }}
-                                    {% if form.approvaluser.errors %}
-                                        {% for err in form.approvaluser.errors %}
+                                    <label for="bookenddatetime" class="starinfo">预约结束时间：</label>
+                                    {#                                <input type="text" id="bookenddatetime" name="bookenddatetime" class="form-control"#}
+                                    {#                                       autocomplete="off">#}
+                                    {{ form.bookenddatetime(class="form-control",autocomplete="off") }}<br>
+                                    {% if form.bookenddatetime.errors %}
+                                        {% for err in form.bookenddatetime.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="arrivalplace" class="starinfo">到达地点：</label>
+                                    {{ form.arrivalplace(id="arrivalplace",class="form-control") }}<br>
+                                    {% if form.arrivalplace.errors %}
+                                        {% for err in form.arrivalplace.errors %}
                                             <span class="errinfo">{{ err }}</span>
                                         {% endfor %}
                                     {% endif %}
 
                                 </div>
-                            {% endif %}
-                        </div>
-                        {#                        <div class="row text-center btn-block">#}
-                        {#                            {{ form.submit(class="btn btn-primary") }}#}
-                        {#                        </div>#}
-                        {#                        <P>{% for msg in get_flashed_messages() %}#}
-                        {#                            {{ msg }}#}
-                        {#                        {% endfor %}#}
-                        {#                        </P>#}
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="namelist">乘车名单：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
+                                    {{ form.namelist(id="namelist",class="form-control") }}
+                                    {% if form.namelist.errors %}
+                                        {% for err in form.namelist.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
 
-                    </filedset>
-                    {#                审批信息的内容#}
-                    <filedset>
-                        <legend class="media"><span class="glyphicon glyphicon-menu-right"></span> &nbsp;审批信息</legend>
-                        <div class="row">
-                            <div class="col-md-3" style=" height:30px">
-                                <label for="L1approvereason" style="font-size: 18px">
-                                    部门经理审批意见：&nbsp&nbsp&nbsp&nbsp</label>
+                                </div>
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="number">乘车人数：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
+                                    {{ form.number(id="number",class="form-control") }}<br>
+                                    {% if form.number.errors %}
+                                        {% for err in form.number.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+
+                                </div>
+
+
                             </div>
-                            <div class="col-md-8">
-                                {% if L1approvalreasons %}
-                                    {% for L1 in L1approvalreasons %}
-                                        <label for="">审批人： {{ L1.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;审批日期：{{ L1.ProcedureApproval.procedure_approval_approval_datetime }}</label>
-                                        <br>
-                                        <label for="">{{ L1.ProcedureApproval.procedure_approval_reason }}</label>
-                                        <br>
-                                    {% endfor %}
-                                {% endif %}
+                            <div class="row">
 
-                                {% if current_node==2 %}
-                                    {{ form.L1approvereason(id="L1approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意") }}
-                                {% endif %}
-                            </div>
+                                <div class="form-group col-md-6 form-inline ">
+                                    <label for="reason" class="starinfo">用车原因：</label>
+                                    {{ form.reason(id="reason",class="form-control",style="width:80%",placeholder="私车公用请在此处填写车牌号") }}<br>
+                                    {% if form.reason.errors %}
+                                        {% for err in form.reason.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
 
-                        </div>
-                        <br>
-                        <div class="row ">
-                            <div class="col-md-3"><label for="L1approvereason" style="font-size: 18px">
-                                综管部经理审批意见：&nbsp&nbsp&nbsp&nbsp</label>
-                            </div>
-                            <div class="col-md-8">
-                                {% if L2approvalreasons %}
-                                    {% for L2 in L2approvalreasons %}
-                                        <label for="">审批人： {{ L2.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;审批日期：{{ L2.ProcedureApproval.procedure_approval_approval_datetime }}</label>
-                                        <br>
-                                        <label for="">{{ L2.ProcedureApproval.procedure_approval_reason }}</label>
-                                        <br>
-                                    {% endfor %}
-                                {% endif %}
+                                </div>
+                                <div class="form-group col-md-2 form-inline ">
+                                    <label for="ifetc" class="starinfo">ETC：</label>
+                                    {{ form.ifetc(id="ifetc") }}
+                                    {% if form.ifetc.errors %}
+                                        {% for err in form.ifetc.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
 
-                                {% if current_node==3 %}
-                                    {{ form.L2approvereason(id="L2approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意") }}
-                                {% endif %}
-                            </div>
+                                </div>
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="driver" class="starinfo"> 驾 驶
+                                        员：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
+                                    {{ form.driver(id="driver",class="form-control") }}
+                                    {% if form.driver.errors %}
+                                        {% for err in form.driver.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
 
-                        </div>
-                        <br>
-                        <div class="row ">
-                            <div class="col-md-3"><label for="L1approvereason" style="font-size: 18px">
-                                保安确认出厂：&nbsp&nbsp&nbsp&nbsp</label>
-                            </div>
-                            <div class="col-md-8">
-                                {% if L3approvalreasons %}
-                                    {% for L3 in L3approvalreasons %}
-                                        <label for="">确认人： {{ L3.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;确认日期：{{ L3.ProcedureApproval.procedure_approval_approval_datetime }}</label>
-                                        <br>
-                                        <label for="">{{ L3.ProcedureApproval.procedure_approval_reason }}</label>
-                                        <label for="">出厂公里数{{ L3.CarProcedureInfo.outmiles }}</label>
-                                        <br>
-                                    {% endfor %}
-                                {% endif %}
+                                </div>
+                                {% if procedure_door=="write" %}
+                                    <div class="form-group col-md-4 form-inline ">
+                                        <label for="approvaluser" class="starinfo">下一审批人：&nbsp&nbsp&nbsp&nbsp</label>
+                                        {{ form.approvaluser(id="approvaluser",class="form-control") }}
+                                        {% if form.approvaluser.errors %}
+                                            {% for err in form.approvaluser.errors %}
+                                                <span class="errinfo">{{ err }}</span>
+                                            {% endfor %}
+                                        {% endif %}
 
-                                {% if current_node==4 %}
-                                    {{ form.L3approvereason(id="L3approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意出厂") }}
-                                    {{ form.outmiles(id="outmile",class="form-control",placeholder="请在此处填写出厂公里数") }}
-
+                                    </div>
                                 {% endif %}
                             </div>
+                            {#                        <div class="row text-center btn-block">#}
+                            {#                            {{ form.submit(class="btn btn-primary") }}#}
+                            {#                        </div>#}
+                            {#                        <P>{% for msg in get_flashed_messages() %}#}
+                            {#                            {{ msg }}#}
+                            {#                        {% endfor %}#}
+                            {#                        </P>#}
 
-                        </div>
-                        <br>
-                        <div class="row ">
-                            <div class="col-md-3"><label for="L4approvereason" style="font-size: 18px">保安确认入厂：&nbsp&nbsp&nbsp&nbsp</label>
+                        </filedset>
+                        {#                审批信息的内容#}
+                        <filedset id="printdata3">
+                            <legend class="media"><span class="glyphicon glyphicon-menu-right"></span> &nbsp;审批信息
+                            </legend>
+                            <div class="row">
+                                <div class="col-md-3" style=" height:30px">
+                                    <label for="L1approvereason" style="font-size: 18px">
+                                        部门经理审批意见：&nbsp&nbsp&nbsp&nbsp</label>
+                                </div>
+                                <div class="col-md-8">
+                                    {% if L1approvalreasons %}
+                                        {% for L1 in L1approvalreasons %}
+                                            <label for="">审批人： {{ L1.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;审批日期：{{ L1.ProcedureApproval.procedure_approval_approval_datetime }}</label>
+                                            <br>
+                                            <label for="">{{ L1.ProcedureApproval.procedure_approval_reason }}</label>
+                                            <br>
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    {% if current_node==2 %}
+                                        {{ form.L1approvereason(id="L1approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意") }}
+                                    {% endif %}
+                                </div>
+
                             </div>
-                            <div class="col-md-8">
-                                {% if L4approvalreasons %}
-                                    {% for L4 in L4approvalreasons %}
-                                        <label for="">审批人： {{ L4.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;审批日期：{{ L4.ProcedureApproval.procedure_approval_approval_datetime }}</label>
-                                        <br>
-                                        <label for="">{{ L4.ProcedureApproval.procedure_approval_reason }}</label>
-                                        <label for="">出厂公里数{{ L4.CarProcedureInfo.miles }}</label>
-                                        <br>
-                                    {% endfor %}
-                                {% endif %}
+                            <br>
+                            <div class="row ">
+                                <div class="col-md-3"><label for="L1approvereason" style="font-size: 18px">
+                                    综管部经理审批意见：&nbsp&nbsp&nbsp&nbsp</label>
+                                </div>
+                                <div class="col-md-8">
+                                    {% if L2approvalreasons %}
+                                        {% for L2 in L2approvalreasons %}
+                                            <label for="">审批人： {{ L2.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;审批日期：{{ L2.ProcedureApproval.procedure_approval_approval_datetime }}</label>
+                                            <br>
+                                            <label for="">{{ L2.ProcedureApproval.procedure_approval_reason }}</label>
+                                            <br>
+                                        {% endfor %}
+                                    {% endif %}
 
-                                {% if current_node==5 %}
-                                    {{ form.L4approvereason(id="L4approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意进厂") }}
-                                    {{ form.miles(id="outmile",class="form-control",placeholder="请在此处填写入厂公里数") }}
-                                {% endif %}
+                                    {% if current_node==3 %}
+                                        {{ form.L2approvereason(id="L2approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意") }}
+                                    {% endif %}
+                                </div>
+
                             </div>
+                            <br>
+                            <div class="row ">
+                                <div class="col-md-3"><label for="L1approvereason" style="font-size: 18px">
+                                    保安确认出厂：&nbsp&nbsp&nbsp&nbsp</label>
+                                </div>
+                                <div class="col-md-8">
+                                    {% if L3approvalreasons %}
+                                        {% for L3 in L3approvalreasons %}
+                                            <label for="">确认人： {{ L3.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;确认日期：{{ L3.ProcedureApproval.procedure_approval_approval_datetime }}</label>
+                                            <br>
+                                            <label for="">{{ L3.ProcedureApproval.procedure_approval_reason }}</label>
+                                            <label for="">出厂公里数{{ L3.CarProcedureInfo.outmiles }}</label>
+                                            <br>
+                                        {% endfor %}
+                                    {% endif %}
 
-                        </div>
-                        <br>
-                    </filedset>
+                                    {% if current_node==4 %}
+                                        {{ form.L3approvereason(id="L3approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意出厂") }}
+                                        {{ form.outmiles(id="outmile",class="form-control",placeholder="请在此处填写出厂公里数") }}
+
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                            <br>
+                            <div class="row ">
+                                <div class="col-md-3"><label for="L4approvereason" style="font-size: 18px">保安确认入厂：&nbsp&nbsp&nbsp&nbsp</label>
+                                </div>
+                                <div class="col-md-8">
+                                    {% if L4approvalreasons %}
+                                        {% for L4 in L4approvalreasons %}
+                                            <label for="">审批人： {{ L4.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;审批日期：{{ L4.ProcedureApproval.procedure_approval_approval_datetime }}</label>
+                                            <br>
+                                            <label for="">{{ L4.ProcedureApproval.procedure_approval_reason }}</label>
+                                            <label for="">出厂公里数{{ L4.CarProcedureInfo.miles }}</label>
+                                            <br>
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    {% if current_node==5 %}
+                                        {{ form.L4approvereason(id="L4approvereason",class="form-control",placeholder="请在此处填写审批意见",value="同意进厂") }}
+                                        {{ form.miles(id="outmile",class="form-control",placeholder="请在此处填写入厂公里数") }}
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                            <br>
+                        </filedset>
+
                 </form>
             </div>
         </div>
@@ -338,7 +353,7 @@
             </div>
         </div>
     </form>
-    #    弹出的用户取消流程模态框#}
+    {#      弹出的用户取消流程模态框#}
     <form method="post"
           action="{{ url_for("home.carproceduremodal") }}">
         {{ form.csrf_token() }}
@@ -353,7 +368,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="">
-                             <label for="">取消理由</label> <br>
+                            <label for="">取消理由</label> <br>
                             <input type="text" name="cancelreason" class="form-control" value="取消该流程"> <br>
 
                             <label class="" style="font-size: small;font-family:华康宋体W3-A" for="">取消该流程后，该流程将不可编辑，仅可以去我的流程或者已办流程中查看。</label>
@@ -445,5 +460,37 @@
             modal.find('#procedure_id').val(recipient)
         })
     </script>
+    {#    <script>#}
+    {#    $("#printbtn").click(function(event) {#}
+    {#		/* Act on the event */#}
+    {#		   $("#printdata").printThis({#}
+    {#               debug: false,#}
+    {#               importCSS: false,#}
+    {#               loadCSS:"{{ url_for("static",filename="css/bootstrap.min.css") }}",#}
+    {#               importStyle: true,#}
+    {#               printContainer: true,#}
+    {#//               loadCSS: "/Content/Themes/Default/style.css",#}
+    {#               pageTitle: "二维码",#}
+    {#               removeInline: true,#}
+    {#               printDelay: 333,#}
+    {#               header: null,#}
+    {#               formValues: false#}
+    {#           });#}
+    {#//		alert("等待打印");#}
+    {#	});#}
+    {##}
+    {#    </script>#}
+    <script>
 
+
+        function printdata() {
+
+            window.document.body.innerHTML = window.document.getElementById("printdataid").innerHTML;
+
+            window.print();
+
+
+        }
+
+    </script>
 {% endblock %}

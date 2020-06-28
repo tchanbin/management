@@ -16,12 +16,12 @@ class Permission:
     L1_APPROVAL = 4
     L2_APPROVAL = 8
 
-class State:
-    SAVE=0
-    RUNNING=1
-    FINISH=2
-    CANCEL=5
 
+class State:
+    SAVE = 0
+    RUNNING = 1
+    FINISH = 2
+    CANCEL = 5
 
 
 # 用户角色表
@@ -58,9 +58,10 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
-    department = db.Column(db.String(64))
-    departmentid = db.Column(db.Integer,db.ForeignKey("company_departments.id"))
-
+    # department = db.Column(db.String(64))
+    departmentid = db.Column(db.Integer, db.ForeignKey("company_departments.id"))
+    departments = db.relationship('CompanyDepartment', foreign_keys=[departmentid], backref="users",
+                                  single_parent=True)
     company = db.Column(db.String(64))
     tel = db.Column(db.String(15))
     password_hash = db.Column(db.String(128))
@@ -108,10 +109,11 @@ class User(UserMixin, db.Model):
         jsonstr = {
             "user_id": self.id,
             "altername": self.username,
-            "alterdepartment": self.department,
+            "alterdepartment": self.departmentid,
             "altertel": self.tel,
             "alterrolename": self.role.name,
             "alterroleid": self.role_id,
+            "alterstatus": "1" if self.status == "正常" else "0",
 
         }
         return jsonstr
@@ -135,9 +137,17 @@ class CompanyDepartment(db.Model):
     __tablename__ = 'company_departments'
     id = db.Column(db.Integer, primary_key=True)
     company = db.Column(db.String(20))
-    departmentid = db.Column(db.Integer)
     department = db.Column(db.String(20))
-    usrdepartments = db.relationship('User', backref='departments', lazy='dynamic')
+    status = db.Column(db.String(10))
+
+    def jsonstr(self):
+        jsonstr = {
+            "department_id": self.id,
+            "alterdepartmentname": self.department,
+            "alterstatus": self.status,
+
+        }
+        return jsonstr
 
 
 # 流程清单表
@@ -147,9 +157,14 @@ class ProcedureList(db.Model):
     procedure_list_flowmodal = db.Column(db.String(50))
     procedure_list_name = db.Column(db.String(20), unique=True)
     procedure_lists = db.relationship("CarProcedureInfo", backref="procedure_name", lazy='dynamic')
-    procedure_list_department = db.Column(db.String(20))
-    procedure_list_departmentid =  db.Column(db.Integer)
+    # procedure_list_department = db.Column(db.String(20))
+    #
+    # procedure_list_departmentid = db.Column(db.Integer, db.ForeignKey("company_departments.id"))
+    # departments = db.relationship('CompanyDepartment', foreign_keys=[procedure_list_departmentid], backref="users",
+    #                               single_parent=True)
     procedure_list_company = db.Column(db.String(20))
+    procedure_list_address = db.Column(db.String(40))
+
 
 # 车辆清单
 class CarList(db.Model):
@@ -176,7 +191,7 @@ class ProcedureNode(db.Model):
 class ProcedureLine(db.Model):
     __tablename__ = 'procedure_lines'
     procedure_line_id = db.Column(db.Integer, primary_key=True)
-    procedure_line_flowmodal=db.Column(db.String(50))
+    procedure_line_flowmodal = db.Column(db.String(50))
     procedure_line_pre_line_id = db.Column(db.Integer)
     procedure_line_pre_line_name = db.Column(db.String(25))
     procedure_line_next_line_id = db.Column(db.Integer)
@@ -194,8 +209,10 @@ class ProcedureApproval(db.Model):
     procedure_approval_user_id = db.Column(db.Integer)
     procedure_approval_flowmodal = db.Column(db.String(25))
     procedure_approval_reason = db.Column(db.String(25))
+
     procedure_approval_approval_datetime = db.Column(db.DateTime())
     procedure_approval_state = db.Column(db.Integer)
+    procedure_approval_company = db.Column(db.String(10))
 
 
 # 流程状态表
@@ -233,7 +250,9 @@ class CarProcedureInfo(db.Model):
     users = db.relationship('User', foreign_keys=user_id, backref="car_procedure_infos",
                             single_parent=True)
     department = db.Column(db.String(64))
-    departmentid = db.Column(db.Integer)
+    departmentid = db.Column(db.Integer, db.ForeignKey("company_departments.id"))
+    departments = db.relationship('CompanyDepartment', foreign_keys=[departmentid], backref="car_procedure_infos",
+                                  single_parent=True)
     car_id = db.Column(db.Integer, db.ForeignKey('car_lists.id'))
     approval_time = db.Column(db.DateTime(), default=datetime.now)
     book_start_datetime = db.Column(db.DATETIME())
@@ -260,8 +279,8 @@ class CarProcedureInfo(db.Model):
     outmiles = db.Column(db.Integer)
     company = db.Column(db.String(10))
     driver = db.Column(db.String(10))
-    rejectreason = db.Column(db.String(100))
-    procedure_no = db.Column(db.Integer)
+    # rejectreason = db.Column(db.String(100))
+    # procedure_no = db.Column(db.Integer)
     current_line_node_id = db.Column(db.Integer)
     state = db.Column(db.Integer)
 
@@ -285,16 +304,17 @@ class CarProcedureInfo(db.Model):
             "reason": self.reason,
             "etc": "使用ETC" if self.etc else "未使用ETC",
             "arrival_place": self.arrival_place,
-            "first_approval": self.first_users.username if self.first_approval else "",
-            "status1": "一级审批中" if self.status1 == 0 else "审批通过" if self.status1 == 1 else "一级审批被拒绝",
-            "second_approval": self.second_users.username if self.second_approval else "",
-            "status2": "二级审批中" if self.status2 == 0 else "审批通过" if self.status2 == 1 else "二级审批被拒绝",
-            "confirmer": self.car_procedure_infos_confirm.username if self.confirmer else "",
+            # "first_approval": self.first_users.username if self.first_approval else "",
+            # "status1": "一级审批中" if self.status1 == 0 else "审批通过" if self.status1 == 1 else "一级审批被拒绝",
+            # "second_approval": self.second_users.username if self.second_approval else "",
+            # "status2": "二级审批中" if self.status2 == 0 else "审批通过" if self.status2 == 1 else "二级审批被拒绝",
+            # "confirmer": self.car_procedure_infos_confirm.username if self.confirmer else "",
             "miles": self.miles,
             "outmiles": self.outmiles,
             "company": self.company,
-            "rejectreason": self.rejectreason,
+            # "rejectreason": self.rejectreason,
             "driver": self.driver
+
         }
         return jsonstr
 
@@ -303,36 +323,56 @@ class CarProcedureInfo(db.Model):
 # 快递流程信息表
 class PackageProcedureInfo(db.Model):
     __tablename__ = 'package_procedure_infos'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(36), primary_key=True)
     procedure_list_id = db.Column(db.Integer)
+    procedure_list_flowmodal = db.Column(db.String(50))
     procedure_name = db.Column(db.String(15))
-    logistics_company = db.Column(db.String(50))
+    logistics_company_id = db.Column(db.Integer, db.ForeignKey("logistics_company_lists.id"))
+    package_infos = db.relationship('LogisticCompanyList', foreign_keys=[logistics_company_id],
+                                    backref="package_procedure_infos_logistics_companys",
+                                    single_parent=True)
     num = db.Column(db.String(50))
     destination_company = db.Column(db.String(100))
     package_name = db.Column(db.String(50))
     payment_method = db.Column(db.String(15))
-    approval_person = db.Column(db.String(15))
-    approval_department = db.Column(db.String(15))
-    approval_departmentid= db.Column(db.Integer)
-    collect_person = db.Column(db.String(15))
-    collect_department = db.Column(db.String(15))
-    collect_departmentid = db.Column(db.Integer)
-    status = db.Column(db.String(15))
+    approval_user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    approval_users = db.relationship('User', foreign_keys=[approval_user_id],
+                                     backref="package_procedure_infos_approval_users",
+                                     single_parent=True)
+    # approval_department = db.Column(db.String(15))
+    # approval_departmentid= db.Column(db.Integer)
+    # approval_departmentid = db.Column(db.Integer, db.ForeignKey("company_departments.id"))
+    # approval_departments = db.relationship('CompanyDepartment', foreign_keys=[approval_departmentid],
+    #                                        backref="package_procedure_infos_approval",
+    #                                        single_parent=True)
+    collect_user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    collect_users = db.relationship('User', foreign_keys=[collect_user_id],
+                                    backref="package_procedure_infos_collect_users",
+                                    single_parent=True)
+    # collect_department = db.Column(db.String(15))
+    # collect_departmentid = db.Column(db.Integer)
+    collect_departmentid = db.Column(db.Integer, db.ForeignKey("company_departments.id"))
+    collect_departments = db.relationship('CompanyDepartment', foreign_keys=[collect_departmentid],
+                                          backref="package_procedure_infos_collect",
+                                          single_parent=True)
+    # status = db.Column(db.String(15))
     approval_time = db.Column(db.DateTime(), default=datetime.now)
     confirm_time = db.Column(db.DateTime())
+    current_line_node_id = db.Column(db.Integer)
+    state = db.Column(db.Integer)
 
     def jsonstr(self):
         jsonstr = {
             "id": self.id,
-            "logistics_company": self.logistics_company,
+            "logistics_company": self.package_infos.company_name,
             "num": self.num,
             "destination_company": self.destination_company,
             "package_name": self.package_name,
             "payment_method": self.payment_method,
-            "approval_person": self.approval_person,
-            "approval_department": self.approval_department,
-            "collect_person": self.collect_person,
-            "collect_department": self.collect_department,
+            "approval_person": self.approval_users.username,
+            "approval_department": self.approval_users.departments.department,
+            "collect_person": self.collect_users.username,
+            "collect_department": self.collect_users.departments.department,
             "approval_time": self.approval_time.strftime("%Y-%m-%d %H:%M:%S"),
             "confirm_time": self.confirm_time.strftime("%Y-%m-%d %H:%M:%S"),
         }
@@ -369,3 +409,11 @@ class Order(db.Model):  # 这是会议室预定记录表
 
     def __str__(self):
         return self.name
+
+
+# 物流公司清单
+class LogisticCompanyList(db.Model):
+    __tablename__ = 'logistics_company_lists'
+    id = db.Column(db.Integer, primary_key=True)
+    company_name = db.Column(db.String(25), unique=True)
+    company_status = db.Column(db.Integer)

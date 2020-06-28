@@ -16,7 +16,7 @@
 .two_bar {
     list-style-type: none;
     display: none;
-    text-align: center;
+    /*text-align: center;*/
     font-size: 14px;
     background-color: white;
     color: black;
