@@ -12,15 +12,18 @@
     <div class="panel panel-primary">
         <div class="panel-heading text-center">用户管理</div>
         <div class="container col-md-12" style="margin:3px">
-            <form action="{{ url_for("home.usermanage") }}" method="get" class="form-inline col-md-3">
-                <div class="form-group">
-
+            <form action="{{ url_for("home.usermanage") }}" method="get" class="form-inline col-md-4">
+                <div class="form-inline">
                     <input type="text" name="keywords" placeholder="请输入你要查询的姓名"
-                           class="form-control">
+                           class="form-control" value={{ keywords }}>
+                    <label for="">用户状态：</label>
+                    <select class="form-control" name="userstatus" id="userstatus">
+                        <option value="正常">正常</option>
+                        <option value="删除">删除</option>
+                    </select>
+                    <button type="submit" class="btn btn-default">模糊搜索</button>
+                    &nbsp&nbsp&nbsp&nbsp
                 </div>
-
-                <button type="submit" class="btn btn-default">模糊搜索</button>
-                &nbsp&nbsp&nbsp&nbsp
             </form>
             <div col-md-2>
                 <button type="button" class="btn btn-primary" data-toggle="modal"
@@ -29,7 +32,7 @@
             </div>
         </div>
         {#    弹出的用户新增模态框#}
-        <form method="post" action="{{ url_for("home.addnewuser") }}">
+        <form method="post" action="{{ url_for("home.usermanage") }}">
             {{ form.csrf_token() }}
             <div class="modal fade" id="addnewuser" tabindex="-1" role="dialog"
                  aria-labelledby="exampleModalLabel">
@@ -55,20 +58,22 @@
                             </div>
                             <div class="form-group">
                                 <label class="control-label">用户角色</label>
-                                <select name="roleid" id="" class="form-control">
-                                    <option value="1">普通员工</option>
-                                    <option value="2">保安</option>
-                                    <option value="3">部门经理</option>
-                                    <option value="4">综管部经理</option>
-                                    <option value="5">管理员</option>
-                                </select>
+                                {#                                <select name="roleid" id="" class="form-control">#}
+                                {#                                    <option value="1">普通员工</option>#}
+                                {#                                    <option value="2">保安</option>#}
+                                {#                                    <option value="3">部门经理</option>#}
+                                {#                                    <option value="4">综管部经理</option>#}
+                                {#                                    <option value="5">管理员</option>#}
+                                {#                                </select>#}
+                                {{ form.roleid(class="form-control") }}
                             </div>
 
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">关闭
                             </button>
-                            {{ form.submit(class="btn btn-primary") }}
+                            <button type="submit" class="btn btn-primary" name="sbbtn" value="addnewuser">提交
+                            </button>
                         </div>
 
                     </div>
@@ -76,7 +81,7 @@
             </div>
         </form>
         {#    弹出的修改用户的模态框#}
-        <form method="post" action="{{ url_for("home.alterusersubmit") }}">
+        <form class="alter" method="post" action="{{ url_for("home.usermanage") }} ">
             {{ form.csrf_token() }}
             <div class="modal fade" id="alteruser" tabindex="-1" role="dialog"
                  aria-labelledby="exampleModalLabel">
@@ -94,61 +99,63 @@
                             </div>
                             <div class="form-group">
                                 <label class="control-label">姓名</label>
-                                <input type="text" name="altername" id="altername" class="form-control">
+                                {#                                <input type="text" name="altername" id="altername" class="form-control">#}
+                                {{ formalteruser.altername(class="form-control") }}
                             </div>
                             {% if current_user.company=="恒鼎" %}
+
                                 <div class="form-group">
                                     <label class="control-label">部门:</label>
-                                    <select name="alterdepartment" id="alterdepartment" class="form-control">
-                                        <option value="综合管理部">综合管理部</option>
-                                        <option value="财务部">财务部</option>
-                                        <option value="采购部">采购部</option>
-                                        <option value="计划物控部">计划物控部</option>
-                                        <option value="营销部">营销部</option>
-                                        <option value="机电设计部">机电设计部</option>
-                                        <option value="管道设计部">管道设计部</option>
-                                        <option value="制造部">制造部</option>
-                                        <option value="工程技术部">工程技术部</option>
-                                        <option value="质量管理部">质量管理部</option>
-                                    </select>
+                                    {#                                    <select name="alterdepartment" id="alterdepartment" class="form-control">#}
+                                    {#                                        <option value=""></option>#}
+                                    {#                                        <option value="综合管理部">综合管理部</option>#}
+                                    {#                                        <option value="财务部">财务部</option>#}
+                                    {#                                        <option value="采购部">采购部</option>#}
+                                    {#                                        <option value="计划物控部">计划物控部</option>#}
+                                    {#                                        <option value="营销部">营销部</option>#}
+                                    {#                                        <option value="机电事业部">机电事业部</option>#}
+                                    {#                                        <option value="管道事业部">管道事业部</option>#}
+                                    {#                                        <option value="制造部">制造部</option>#}
+                                    {#                                        <option value="质量管理部">质量管理部</option>#}
+                                    {#                                    </select>#}
+                                    {{ formalteruser.alterdepartment(class="form-control") }}
                                 </div>
                             {% else %}
                                 <div class="form-group">
                                     <label class="control-label">部门:</label>
-                                    <select name="alterdepartment" id="alterdepartment" class="form-control">
-                                        <option value="总经办">总经办</option>
-                                        <option value="综合管理部">综合管理部</option>
-                                        <option value="营销中心">营销中心</option>
-                                        <option value="采购部">财务部</option>
-                                        <option value="采购部">采购部</option>
-                                        <option value="工程部">工程部</option>
-                                        <option value="技术中心">技术中心</option>
-                                        <option value="质量管理部">质量管理部</option>
-                                        <option value="计划物控部">计划物控部</option>
-                                        <option value="制造部">制造部</option>
-                                    </select>
+                                    {#                                    <select name="alterdepartment" id="alterdepartment" class="form-control">#}
+                                    {#                                        <option value="总经办">总经办</option>#}
+                                    {#                                        <option value="综合管理部">综合管理部</option>#}
+                                    {#                                        <option value="营销中心">营销中心</option>#}
+                                    {#                                        <option value="采购部">财务部</option>#}
+                                    {#                                        <option value="采购部">采购部</option>#}
+                                    {#                                        <option value="工程部">工程部</option>#}
+                                    {#                                        <option value="技术中心">技术中心</option>#}
+                                    {#                                        <option value="质量管理部">质量管理部</option>#}
+                                    {#                                        <option value="计划物控部">计划物控部</option>#}
+                                    {#                                        <option value="制造部">制造部</option>#}
+                                    {#                                    </select>#}
+                                    {{ formalteruser.alterdepartment(class="form-control") }}
                                 </div>
                             {% endif %}
                             <div class="form-group">
                                 <label class="control-label">电话</label>
-                                <input type="text" name="altertel" id="altertel" class="form-control">
+                                {#                                <input type="text" name="altertel" id="altertel" class="form-control">#}
+                                {{ formalteruser.altertel(class="form-control") }}
                             </div>
                             <div class="form-group">
                                 <label class="control-label">用户角色</label>
-                                <select name="alterroleid" id="alterroleid" class="form-control">
-                                    <option value="1">普通员工</option>
-                                    <option value="2">保安</option>
-                                    <option value="3">部门经理</option>
-                                    <option value="4">综管部经理</option>
-                                    <option value="5">管理员</option>
-                                </select>
+                                {{ formalteruser.alterroleid(class="form-control") }}
                             </div>
-
+                            <div class="form-group">
+                                <label class="control-label">用户状态</label>
+                                {{ formalteruser.alterstatus(class="form-control") }}
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">关闭
                             </button>
-                            <button type="submit" class="btn btn-primary">提交</button>
+                            <button type="submit" class="btn btn-primary" name="sbbtn" value="alteruser">提交</button>
                         </div>
 
                     </div>
@@ -166,7 +173,9 @@
                 <th class="text-center">电话</th>
                 <th class="text-center">角色</th>
                 <th class="text-center">状态</th>
-                <th class="text-center">删除</th>
+                {% if userstatus=="正常" %}
+                    <th class="text-center">删除</th>
+                {% endif %}
                 <th class="text-center">密码重置</th>
                 <th class="text-center">修改</th>
 
@@ -179,7 +188,7 @@
                     <tr class="text-center">
                         <td>{{ loop.index }}</td>
                         <td>{{ user.username }}</td>
-                        <td>{{ user.department }}</td>
+                        <td>{{ user.departments.department }}</td>
                         <td>{{ user.tel }}</td>
                         {% if user.role_id==1 %}
                             <td>普通员工</td>
@@ -195,8 +204,10 @@
                             <td>无</td>
                         {% endif %}
                         <td>{{ user.status }}</td>
-                        <td><a href="{{ url_for("home.deluser",user_id=user.id) }}">删除</a></td>
-                        <td><a href="{{ url_for("home.resetcode",user_id=user.id) }}">重置</a></td>
+                        {% if userstatus=="正常" %}
+                            <td><a href="{{ url_for("home.usermanage",user_id=user.id,target="del") }}">删除</a></td>
+                        {% endif %}
+                        <td><a href="{{ url_for("home.usermanage",user_id=user.id,target="reset") }}">重置</a></td>
                         <td><a id="{{ user.id }}" class="query" href="" data-toggle="modal">修改</a></td>
                     </tr>
 
@@ -222,12 +233,21 @@
             </div>
         </div>
     {% endif %}
-    {#    {% include "home/procedureinfoquery.html" %}#}
+
 {% endblock %}
 
 {% block scripts %}
     {#    插入成功提示#}
     {{ super() }}
+    <script>
+        $(document).ready(function () {
+
+            $("#navtag9b").slideDown("fast");
+            $("#navtag9b1 a").css({"color":"red"});
+
+        });
+    </script>
+
     <script>
         $(document).ready(function () {
             $._messengerDefaults = {
@@ -281,13 +301,22 @@
                         $("#altertel").val(data.altertel)
                         {#$("#alterroleid").find("option:selected").text(data.alterrolename).val(data.alterroleid)#}
 
-                        $(" select option[value='" + data.alterroleid + "']").attr("selected", "selected");
-                        $(" select option[value='" + data.alterdepartment + "']").attr("selected", "selected");
+                        $("#alterroleid  option[value='" + data.alterroleid + "']").attr("selected", "selected");
+                        $("#alterdepartment  option[value='" + data.alterdepartment + "']").attr("selected", "selected");
+                      $("#alterstatus  option[value='" + data.alterstatus + "']").attr("selected", "selected");
                     }
                 )
             })
         });
     </script>
+    <script>
+        $(document).ready(function () {
+            $(function () {
+                $("#userstatus option[value='" + "{{ userstatus }}" + "']").attr("selected", "selected");
+            });
+        })
+    </script>
+
 {% endblock %}
 
 

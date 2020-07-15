@@ -48,17 +48,18 @@
             <td>{{ my_procedure.cars.name }}</td>
             <td>{{ my_procedure.users.username }}</td>
             <td>{{ my_procedure.department }}</td>
-            {% if my_procedure.status1==2 %}
-            <td class="alert-danger">一审拒绝</td>
-            {% elif my_procedure.status2==2 %}
-                <td class="alert-danger">二审拒绝</td>
-            {% elif my_procedure.status2==1 %}
-                <td class="alert-success"> 已审批</td>
-            {% elif my_procedure.status1==1 %}
-                <td class="alert-warning">二级审批中</td>
-            {% else %}
-                <td class="alert-info">一级审批中</td>
-            {% endif %}
+            <td>{{ my_procedure.procedure_lines_no}}</td>
+{#            {% if my_procedure.current_line_node_id==1 %}#}
+{#            <td class="alert-danger">一级审批中</td>#}
+{#            {% elif my_procedure.current_line_node_id==3 %}#}
+{#                <td class="alert-danger">二级审批中</td>#}
+{#            {% elif my_procedure.current_line_node_id==4 %}#}
+{#                <td class="alert-success"> 驳回</td>#}
+{#            {% elif my_procedure.status1==1 %}#}
+{#                <td class="alert-warning">二级审批中</td>#}
+{#            {% else %}#}
+{#                <td class="alert-info">一级审批中</td>#}
+{#            {% endif %}#}
             <td><a id="{{ my_procedure.id }}" class="query" href="" data-toggle="modal">查看流程详情</a></td>
         </tr>
         {% endfor %}

@@ -17,7 +17,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://root:11111111@127.0.0.1:3306/management"
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://root:11111111@127.0.0.1:3306/managementtest"
 
 
 

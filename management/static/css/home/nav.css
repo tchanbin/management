@@ -1,6 +1,6 @@
 #nav {
     position: fixed;
-    width: 15%;
+    width: 10%;
     left: 0px;
     top: 70px;
     bottom: 0px;
@@ -16,7 +16,7 @@
 .two_bar {
     list-style-type: none;
     display: none;
-    text-align: center;
+    /*text-align: center;*/
     font-size: 14px;
     background-color: white;
     color: black;

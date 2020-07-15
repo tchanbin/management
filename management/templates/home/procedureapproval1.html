@@ -28,7 +28,7 @@
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="">部门：</label>
-                                <label for="">{{ current_user.department }}</label>
+                                <label for="">{{ current_user.departments.department }}</label>
                             </div>
                             <div class="form-group col-md-3 form-inline ">
                                 <label for="" class="starinfo">电话：</label>
@@ -140,7 +140,8 @@
 
                             </div>
                             <div class="form-group col-md-4 form-inline ">
-                                <label for="driver" class="starinfo"> 驾 驶 员：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
+                                <label for="driver" class="starinfo"> 驾 驶
+                                    员：&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</label>
                                 {{ form.driver(id="driver",class="form-control") }}
                                 {% if form.driver.errors %}
                                     {% for err in form.driver.errors %}
@@ -149,7 +150,16 @@
                                 {% endif %}
 
                             </div>
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="approvaluser" class="starinfo"> 审批人：&nbsp&nbsp&nbsp&nbsp</label>
+                                {{ form.approvaluser(id="approvaluser",class="form-control") }}
+                                {% if form.approvaluser.errors %}
+                                    {% for err in form.approvaluser.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
 
+                            </div>
                         </div>
                         <div class="row text-center btn-block">
                             {{ form.submit(class="btn btn-primary") }}
@@ -241,6 +251,7 @@
             $("#bookstartdatetime").datetimepicker('setEndDate', endtime);
         });
     </script>
+
     {#   插入成功提示#}
     <script>
         $(document).ready(function () {

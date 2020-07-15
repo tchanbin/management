@@ -26,6 +26,7 @@
     <script type="text/javascript" src="{{ url_for("static",filename="js/messenger-theme-flat.js") }}"></script>
     <script type="text/javascript" src="{{ url_for("static",filename="js/jquery.resizableColumns.min.js") }}"></script>
     <script type="text/javascript" src="{{ url_for("static",filename="js/bootstrap-table.min.js") }}"></script>
+    <script type="text/javascript" src="{{ url_for("static",filename="js/printThis.js") }}"></script>
     <script type="text/javascript"
             src="{{ url_for("static",filename="js/bootstrap-table-resizable.min.js") }}"></script>
     <script type="text/javascript" src="{{ url_for("static",filename="js/home/navactive.js") }}"></script>
@@ -71,7 +72,7 @@
 
 
                             <p><label for="">公司：</label>{{ current_user.company }}&nbsp;&nbsp; <label
-                                    for="">部门：</label>{{ current_user.department }}&nbsp; &nbsp; &nbsp;
+                                    for="">部门：</label>{{ current_user.departments.department }}&nbsp; &nbsp; &nbsp;
                                 &nbsp; {{ current_user.username }}
                                 <span>|</span>&nbsp;
                                 <a type="button" href="{{ url_for("home.logout") }}">退出登录</a>

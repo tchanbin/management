@@ -1,0 +1,413 @@
+{% extends 'home/homebase.html' %}
+
+{% block title %}快递流程申请表{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/startprocedure.css") }}">
+
+{% endblock %}
+{% block page_content %}
+    <div id="printdataid">
+
+    <div class="panel panel-primary  ">
+        <div class="panel-heading text-center">快递流程申请表</div>
+
+
+        <div class="container">
+            <div class="row">
+                <form action="" id="proceduremodal" method="post">
+                    {{ forminfo.csrf_token() }}
+                    {#    功能按钮区#}
+                    <br>
+                    {% if procedure_door=="apply" %}
+                        <button type="submit" class="btn btn-success" name="sbbtn" value="sbumit"><span
+                                class="glyphicon glyphicon-ok"></span>
+                            &nbsp;提交
+                        </button>
+                    {% endif %}
+
+                    {% if procedure_door=="write" %}
+                        <div class="btn-group" role="group" aria-label="...">
+
+                            <button type="submit" class="btn btn-success" name="sbbtn" value="sbumit"><span
+                                    class="glyphicon glyphicon-ok"></span>
+                                &nbsp;提交
+                            </button>
+                            {% if current_user.can(Permission.L1_APPROVAL) and current_line_node_id!=1 %}
+                                <button type="button" class="btn btn-danger" data-toggle="modal"
+                                        data-target="#reject" data-whatever="1"><span
+                                        class="glyphicon glyphicon-remove"></span>&nbsp;驳回
+                                </button>
+
+                                <button type="button" class="btn btn-warning " data-toggle="modal"
+                                        data-target="#cancel" data-whatever="2"><span
+                                        class="glyphicon glyphicon-minus"></span>&nbsp;取消
+                                </button>
+                            {% endif %}
+
+                        </div>
+
+
+                    {% endif %}
+                    &nbsp;
+                    <button type="button" class="btn btn-info"
+                            id="printbtn" onclick="printdata();"><span
+                            class="glyphicon glyphicon-print"></span>&nbsp;打印
+                    </button>
+
+                    [<a href='javascript:history.go(0)'>刷新</a>]
+
+                    <filedset id="printdata1">
+                        <br>
+                        <legend class="media "><span class="glyphicon glyphicon-menu-right"></span> &nbsp;基本信息
+                        </legend>
+                        <div class="row">
+                            <div class="form-group col-md-2">
+                                <label for="">用户姓名：</label>
+                                <label for="">{{ myprocedure.PackageProcedureInfo.approval_users.username if myprocedure else current_user.username }}</label>
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="">公司：</label>
+                                <label for="">{{ myprocedure.PackageProcedureInfo.approval_users.company if myprocedure else current_user.company }}</label>
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="">部门：</label>
+                                <label for="">{{ myprocedure.PackageProcedureInfo.approval_users.department if myprocedure else current_user.departments.department }}</label>
+                            </div>
+                            <div class="form-group col-md-3 form-inline ">
+                                <label for="" class="starinfo">电话：</label>
+                                {{ forminfo.tel(class="form-control",value= myprocedure.PackageProcedureInfo.approval_users.tel if myprocedure else current_user.tel) }}
+                                {% if forminfo.tel.errors %}
+                                    {% for err in forminfo.tel.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                                <br>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="">发起日期：</label>
+                                <label for="">{{ myprocedure.PackageProcedureInfo.approval_time if myprocedure else moment(current_time).format('LL') }}</label>
+
+                            </div>
+                        </div>
+
+                    </filedset>
+                    {#                    {% endif %}#}
+                    <filedset>
+                        {#                    第二行 流程信息#}
+                        <legend class="media">流程信息</legend>
+                        <div class="row">
+                            <div class="form-group col-md-4 form-inline">
+                                <label for="" class="starinfo">物流公司：</label>
+                                {{ forminfo.logistc_company(class="form-control") }}
+
+                            </div>
+
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="num" class="starinfo">运 单 号 ：</label>
+                                {{ forminfo.num(id="num",class="form-control") }}<br>
+                                {% if forminfo.num.errors %}
+                                    {% for err in forminfo.num.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="package_name" class="starinfo">邮寄物品：</label>
+                                {{ forminfo.package_name(id="package_name",class="form-control") }}<br>
+                                {% if forminfo.package_name.errors %}
+                                    {% for err in forminfo.package_name.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                        </div>
+                        {#                    第三行 流程信息#}
+                        <div class="row">
+                            <div class="form-group col-md-4 form-inline ">
+                                <label for="destination_company" class="starinfo">对方公司：</label>
+                                {{ forminfo.destination_company(id="destination_company",class="form-control") }}<br>
+                                {% if forminfo.destination_company.errors %}
+                                    {% for err in forminfo.destination_company.errors %}
+                                        <span class="errinfo">{{ err }}</span>
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                            {#                        判断付款方式，role_id=2则到付，其他寄付#}
+                            {% if current_user.role_id==2 %}
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="payment_method" class="starinfo">付款方式：</label>
+                                    {{ forminfo.payment_method(class="form-control",readonly="True",value="到付" if not forminfo.payment_method.data else forminfo.payment_method.data) }}
+{#                                    <input type="text" class="form-control" readonly name="payment_method"#}
+{#                                           value="到付">#}
+                                </div>
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="collect_person" class="starinfo">收 件 人 ：</label>
+                                    {{ forminfo.collect_person(id="collect_person",class="form-control") }}<br>
+                                    {% if forminfo.collect_person.errors %}
+                                        {% for err in forminfo.collect_person.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                            {% else %}
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="payment_method" class="starinfo">付款方式：</label>
+                                    {{ forminfo.payment_method(class="form-control",readonly="True",value="寄付" if not forminfo.payment_method.data else forminfo.payment_method.data) }}
+{#                                    <input type="text" class="form-control" readonly name="payment_method"#}
+{#                                           value="寄付">#}
+                                </div>
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="collect_person" class="starinfo">寄 件 人 ：</label>
+                                    {{ forminfo.collect_person(id="collect_person",class="form-control",value=current_user.username) }}<br>
+                                    {% if forminfo.collect_person.errors %}
+                                        {% for err in forminfo.collect_person.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                            {% endif %}
+                        </div>
+                        {% if current_user.role_id!=2 %}
+                            <div class="row">
+                                <div class="form-group col-md-4 form-inline ">
+                                    <label for="approvaluser" class="starinfo">下一审批人：&nbsp&nbsp&nbsp&nbsp</label>
+                                    {{ forminfo.approvaluser(id="approvaluser",class="form-control") }}
+                                    {% if forminfo.approvaluser.errors %}
+                                        {% for err in forminfo.approvaluser.errors %}
+                                            <span class="errinfo">{{ err }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+
+
+                                </div>
+                            </div>
+                        {% endif %}
+                    </filedset>
+                    {#                审批信息的内容#}
+                    <filedset id="printdata3">
+                        <legend class="media"><span class="glyphicon glyphicon-menu-right"></span> &nbsp;审批信息
+                        </legend>
+                        <div class="row ">
+                            <div class="col-md-3"><label for="L3approvereason" style="font-size: 18px">
+                                保安确认邮寄/收到：&nbsp&nbsp&nbsp&nbsp</label>
+                            </div>
+                            <div class="col-md-8">
+                                {% if L3approvalreasons %}
+                                    {% for L3 in L3approvalreasons %}
+                                        <label for="">确认人： {{ L3.User.username }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;确认日期：{{ L3.ProcedureApproval.procedure_approval_approval_datetime }}</label>
+                                        <br>
+                                        <label for="">{{ L3.ProcedureApproval.procedure_approval_reason }}</label>
+
+                                        <br>
+                                    {% endfor %}
+                                {% endif %}
+
+                                {% if L3approvalreasons and current_line_node_id==4 %}
+                                    {{ forminfo.L3approvereason(id="L3approvereason",class="form-control",placeholder="请在此处填写审批意见",value="确认邮寄/收到") }}
+
+
+                                {% endif %}
+                            </div>
+
+                        </div>
+
+                        <br>
+                    </filedset>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+{#    弹出的用户驳回节点模态框#}
+    <form method="post"
+          action="{{ url_for("home.packageproceduremodal") }}">
+
+        <div class="modal fade" id="reject" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">请选择驳回节点</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label hidden for="">驳回的流程id</label>
+                            <input hidden type="text" name="reject_procedure_id"
+                                   value={{ myprocedure.ProcedureApproval.procedure_approval_flowid if myprocedure }}>
+                            <br>
+                            <label class="control-label">驳回节点</label>
+                            <select name="rejectnode" id="rejectnode" class="form-control">
+                                {% for rejectnode in rejectnodes %}
+                                    <option value={{ rejectnode[0] }}>{{ rejectnode[1] }}</option>
+                                {% endfor %}
+                            </select>
+                            <label for="">驳回理由</label> <br>
+                            <input type="text" name="rejectreason" class="form-control" value="请修改申请内容">
+                            <label hidden for="">当前流程节点id</label>
+                            <input hidden type="text" name="current_line_node_id"
+                                   value={{ myprocedure.ProcedureApproval.procedure_approval_current_line_node_id if myprocedure}}>
+                            <br>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                        </button>
+                        <button type="submit" class="btn btn-default" name="sbbtn" value="reject">
+                            驳回
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
+{#    弹出的用户取消流程模态框#}
+    <form method="post"
+          action="{{ url_for("home.packageproceduremodal") }}">
+
+        <div class="modal fade" id="cancel" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">请确认取消该流程</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="">
+                            <label for="">取消理由</label> <br>
+                            <input type="text" name="cancelreason" class="form-control" value="取消该流程"> <br>
+
+                            <label class="" style="font-size: small;font-family:华康宋体W3-A" for="">取消该流程后，该流程将不可编辑，仅可以去我的流程或者已办流程中查看。</label>
+                            <label hidden for="">当前流程节点id</label>
+                            <input hidden type="text" name="current_line_node_id"
+                                   value={{ myprocedure.ProcedureApproval.procedure_approval_current_line_node_id if myprocedure }}>
+                            <br>
+                            <label hidden for="">取消的流程id</label>
+                            <input hidden type="text" name="cancel_procedure_id"
+                                   value={{ myprocedure.ProcedureApproval.procedure_approval_flowid if myprocedure}}>
+                            <br>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                        </button>
+                        <button type="submit" class="btn btn-danger" name="sbbtn" value="cancel">
+                            取消
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $("#bookstartdatetime").datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:ss',
+            language: 'zh-CN',
+            autoclose: true,
+            startView: 2,
+            todayBtn: true,
+
+        }).on('changeDate', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var begintime = $("#bookstartdatetime").val();
+            $("#bookenddatetime").datetimepicker('setStartDate', begintime);
+            $("#bookenddatetime").val("");
+        });
+        $("#bookenddatetime").datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:ss',
+            language: 'zh-CN',
+            autoclose: true,
+            startView: 2,
+            todayBtn: true,
+
+        }).on('changeDate', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var endtime = $("#bookenddatetime").val();
+            $("#bookstartdatetime").datetimepicker('setEndDate', endtime);
+        });
+    </script>
+    {#   插入成功提示#}
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'error',//消息类型。error、info、success
+                    hideAfter: 3,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
+
+    {#    驳回节点选择的模态框js#}
+    <script>
+
+        $('#reject').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) // Button that triggered the modal
+            var recipient = button.data('whatever') // Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this)
+            {#modal.find('.modal-title').text('New message to ' + recipient)#}
+            modal.find('#procedure_id').val(recipient)
+        })
+    </script>
+    {#    <script>#}
+    {#    $("#printbtn").click(function(event) {#}
+    {#		/* Act on the event */#}
+    {#		   $("#printdata").printThis({#}
+    {#               debug: false,#}
+    {#               importCSS: false,#}
+    {#               loadCSS:"{{ url_for("static",filename="css/bootstrap.min.css") }}",#}
+    {#               importStyle: true,#}
+    {#               printContainer: true,#}
+    {#//               loadCSS: "/Content/Themes/Default/style.css",#}
+    {#               pageTitle: "二维码",#}
+    {#               removeInline: true,#}
+    {#               printDelay: 333,#}
+    {#               header: null,#}
+    {#               formValues: false#}
+    {#           });#}
+    {#//		alert("等待打印");#}
+    {#	});#}
+    {##}
+    {#    </script>#}
+    <script>
+
+
+        function printdata() {
+
+            window.document.body.innerHTML = window.document.getElementById("printdataid").innerHTML;
+
+            window.print();
+
+
+        }
+
+    </script>
+{% endblock %}

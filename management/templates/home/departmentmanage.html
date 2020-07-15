@@ -1,0 +1,244 @@
+{% extends 'home/homebase.html' %}
+
+{% block title %}部门管理{% endblock %}
+{##}
+{#{% block styles %}#}
+{#    {{ super() }}#}
+{#    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/usermanage.css") }}">#}
+{##}
+{#{% endblock %}#}
+
+{% block page_content %}
+    <div class="panel panel-primary">
+        <div class="panel-heading text-center">部门管理</div>
+        <div class="container col-md-12" style="margin:3px">
+            <form action="{{ url_for("home.departmentmanage") }}" method="get" class="form-inline col-md-4">
+                <div class="form-inline">
+                    <input type="text" name="keywords" placeholder="请输入你要查询的部门"
+                           class="form-control" value={{ keywords }}>
+                    <label for="">部门状态：</label>
+                    <select class="form-control" name="departmentstatus" id="departmentstatus">
+                        <option value="1">正常</option>
+                        <option value="0">删除</option>
+                    </select>
+                    <button type="submit" class="btn btn-default">模糊搜索</button>
+                    &nbsp&nbsp&nbsp&nbsp
+                </div>
+            </form>
+            <div col-md-2>
+                <button type="button" class="btn btn-primary" data-toggle="modal"
+                        data-target="#addnewdepartment" data-whatever="1">新增部门
+                </button>
+            </div>
+        </div>
+        {#    弹出的部门新增模态框#}
+        <form method="post" action="{{ url_for("home.departmentmanage") }}">
+            {{ formaddnew.csrf_token() }}
+            <div class="modal fade" id="addnewdepartment" tabindex="-1" role="dialog"
+                 aria-labelledby="exampleModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="exampleModalLabel">请填新增部门信息</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="control-label">部门名称</label>
+                                {{ formaddnew.newdepartment(class="form-control") }}
+                            </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="sbbtn" value="addnewuser">提交
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+        {#    弹出的修改用户的模态框#}
+        <form class="alter" method="post" action="{{ url_for("home.departmentmanage") }} ">
+            {{ formalterdepartment.csrf_token() }}
+            <div class="modal fade" id="alterdepartment" tabindex="-1" role="dialog"
+                 aria-labelledby="exampleModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">修改部门信息</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                {#                                <label type="hidden" class="control-label">用户id</label>#}
+                                <input type="hidden" name="department_id" id="department_id" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">部门名称</label>
+                                {{ formalterdepartment.alterdepartmentname(class="form-control",placeholder="修改后部门名称") }}
+
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">部门状态</label>
+                                {{ formalterdepartment.alterstatus(class="form-control") }}
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                            </button>
+                            <button type="submit" class="btn btn-primary" name="sbbtn" value="alterdepartment">提交
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+        <br>
+        {#    正式表格查询和展示用户界面#}
+        <table class="table table-striped table-bordered table-hover table-responsive text-left" id="table">
+            <thead>
+            <tr style="background-color: gainsboro">
+                <th class="text-center">序号</th>
+                <th class="text-center">部门</th>
+                <th class="text-center">状态</th>
+                {% if departmentstatus=="1" %}
+                    <th class="text-center">删除</th>
+                {% endif %}
+                <th class="text-center">修改</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if  departments %}
+                {% for department in departments %}
+                    <tr class="text-center">
+                        <td>{{ loop.index }}</td>
+                        <td>{{ department.department }}</td>
+                        {% if department.status =="1" %}
+                            <td>正常</td>
+                        {% elif department.status =="0" %}
+                            <td>删除</td>
+                        {% endif %}
+                        {% if departmentstatus=="1" %}
+                            <td>
+                                <a href="{{ url_for("home.departmentmanage",department_id=department.id,target="del") }}">删除</a>
+                            </td>
+                        {% endif %}
+                        <td><a id={{ department.id }} class="query" href="" data-toggle="modal">修改</a></td>
+                    </tr>
+
+                {% endfor %}
+
+                <tr>
+                    <td></td>
+                </tr>
+            {% else %}
+                <tr class="text-center text-warning">
+                    <td colspan="8">暂时还没有用户哦~</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% if  users %}
+        <div class="container">
+            <div class="row ">
+                <div class="pagination col-md-12 ">
+                    {{ macros.pagination_widget(pagination, '.departmentmanage') }}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+    {#    插入成功提示#}
+    {{ super() }}
+<script>
+        $(document).ready(function () {
+
+            $("#navtag9b").slideDown("fast");
+            $("#navtag9b2 a").css({"color":"red"});
+
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'info',//消息类型。error、info、success
+                    hideAfter: 5,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
+    {#    可拖拽的表格#}
+    {#    <script>#}
+    {#        $(function () {#}
+    {#            $('#table').bootstrapTable()#}
+    {#        })#}
+    {#    </script>#}
+    <script>
+
+        $('#addnewdepartment').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) // Button that triggered the modal
+            var recipient = button.data('whatever') // Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this)
+            {#modal.find('.modal-title').text('New message to ' + recipient)#}
+            modal.find('#procedure_id').val(recipient)
+        })
+    </script>
+    <script>
+        $(document).ready(function () {
+            $(".query").click(function () {
+                var department_id = this.id
+
+                $.post(
+                    "{{ url_for("home.alterdepartment") }}",
+                    JSON.stringify({
+                        department_id: department_id,
+                    }),
+                    function (data) {
+                        $('#alterdepartment').modal("show")
+                        $("#department_id").val(data.department_id)
+                        $("#alterdepartmentname").val(data.alterdepartmentname)
+                        {#$("#alterdepartment").find("option:selected").text(data.alterdepartment).val(data.alterdepartment)#}
+                        {#                        $("#altertel").val(data.altertel)#}
+                        {#$("#alterroleid").find("option:selected").text(data.alterrolename).val(data.alterroleid)#}
+                        {##}
+                        {#                        $("#alterroleid  option[value='" + data.alterroleid + "']").attr("selected", "selected");#}
+                        $("#alterstatus  option[value='" + data.alterstatus + "']").attr("selected", "selected");
+                    }
+                )
+            })
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $(function () {
+                $("#departmentstatus option[value='" + "{{ departmentstatus }}" + "']").attr("selected", "selected");
+            });
+        })
+    </script>
+
+{% endblock %}
+
+
+
