@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, abort, flash, request, \
-    current_app, make_response, g, session, Response, jsonify, json
+    current_app, make_response, g, session, Response, jsonify, json,Markup
 from .forms import LoginForm, ResetPwd, CarProcedureForm, AddNewUserForm, PackageProcedureForm, \
     AlterUserForm, AlterDepartmentForm, AddNewDepartmentForm
 from flask_login import login_required, current_user, login_user, logout_user
@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_, or_, extract, func
 from ..models import Permission, Role, User, CarProcedureInfo, CarList, ProcedureList, PackageProcedureInfo, \
     CompanyDepartment, times, ProcedureApproval, ProcedureLine, ProcedureNode, ProcedureState, FieldPermission, \
-    LogisticCompanyList
+    LogisticCompanyList, Order, House
 from . import home
 from management import db, excel
 from datetime import datetime
@@ -1628,6 +1628,44 @@ def alterdepartment():
 
 
 #
+# 会议室预订
+@home.route("/meetproceduremodal", methods=["GET", "POST"])
+@login_required
+def meetproceduremodal():
+    date = request.args.get('time')
+    now = datetime.now()
+    if request.is_xhr:
+        data = json.loads(request.get_data())
+        add_dic = data['add_dic']
+        del_dic = data['del_dic']
+        date = data['date']
+        date = date or now
+        if del_dic:  # 拿到要删除的字典，然后删除
+            for key, value in del_dic.items():
+                for ele in value:
+                    Order.query.filter_by(date=date, user_id=request.user.id, house_id=int(key),
+                                          time=int(ele)).delete()
+    if request.method == "POST":
+        date = request.args.get("time")
+    date = date or now
+    username = current_user.username
+    orders = Order.query.filter_by(date=date)
+    houses = House.query.all()
+    choices = times
+    data_list = []
+    tablebody = ""
+    for house in houses:  # 这就是构建表体数据
+        tablebody += '<tr class="%s"><td>%s(%s)</td>' % (house.id, house.name, house.company)
+        for choice in choices:
+            for order in orders:
+
+        tablebody += '</tr>'
+    tablebody=Markup(tablebody)
+
+
+    return render_template("home/procedureapproval3.html",tablebody=tablebody,choices=choices)
+
+#
 # # 门卫确认流程主页
 # @home.route("/confirmlist", methods=["GET", "POST"])
 # @login_required
@@ -1987,55 +2025,55 @@ def alterdepartment():
 #     return redirect(url_for("home.confirmcar"))
 
 
-# 确认快递已经邮寄出
-@home.route("/confircollect/<procedure_id>", methods=["GET", "POST"])
-@login_required
-@permission_required(Permission.CONFIRM)
-def confircollect(procedure_id):
-    a = PackageProcedureInfo.query.filter(
-        PackageProcedureInfo.id == procedure_id,
-    ).first()
-
-    a.status = "已寄出"
-    a.confirm_time = datetime.now()
-    db.session.add(a)
-    try:
-        db.session.commit()
-        flash("快递已经确认从公司邮寄出厂")
-    except:
-        db.session.rollback()
-        flash("提交数据失败")
-        return render_template("404.html")
-
-    return redirect(url_for("home.confirmpackage"))
-
-
-# 作废流程页
-@home.route("/rejectedprocedure", methods=["GET", "POST"])
-@login_required
-@permission_required(Permission.APPLY)
-def rejectedprocedure():
-    page = request.args.get("page", 1, type=int)
-    keywords = request.args.get("keywords", "")
-
-    pagination = CarProcedureInfo.query.filter(
-        CarProcedureInfo.approval_time.contains(keywords),
-        or_(
-            CarProcedureInfo.status1 == 2,
-            CarProcedureInfo.status2 == 2,
-        ),
-        or_(CarProcedureInfo.user_id == current_user.id,
-            CarProcedureInfo.first_approval == current_user.id,
-            CarProcedureInfo.second_approval == current_user.id
-            ),
-        CarProcedureInfo.company == current_user.company,
-
-    ).order_by(
-        CarProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
-    ["FLASKY_PER_PAGE"], error_out=False)
-    my_procedure = pagination.items
-
-    return render_template("home/rejectedprocedure.html", my_procedure=my_procedure, pagination=pagination)
+# # 确认快递已经邮寄出
+# @home.route("/confircollect/<procedure_id>", methods=["GET", "POST"])
+# @login_required
+# @permission_required(Permission.CONFIRM)
+# def confircollect(procedure_id):
+#     a = PackageProcedureInfo.query.filter(
+#         PackageProcedureInfo.id == procedure_id,
+#     ).first()
+#
+#     a.status = "已寄出"
+#     a.confirm_time = datetime.now()
+#     db.session.add(a)
+#     try:
+#         db.session.commit()
+#         flash("快递已经确认从公司邮寄出厂")
+#     except:
+#         db.session.rollback()
+#         flash("提交数据失败")
+#         return render_template("404.html")
+#
+#     return redirect(url_for("home.confirmpackage"))
+#
+#
+# # 作废流程页
+# @home.route("/rejectedprocedure", methods=["GET", "POST"])
+# @login_required
+# @permission_required(Permission.APPLY)
+# def rejectedprocedure():
+#     page = request.args.get("page", 1, type=int)
+#     keywords = request.args.get("keywords", "")
+#
+#     pagination = CarProcedureInfo.query.filter(
+#         CarProcedureInfo.approval_time.contains(keywords),
+#         or_(
+#             CarProcedureInfo.status1 == 2,
+#             CarProcedureInfo.status2 == 2,
+#         ),
+#         or_(CarProcedureInfo.user_id == current_user.id,
+#             CarProcedureInfo.first_approval == current_user.id,
+#             CarProcedureInfo.second_approval == current_user.id
+#             ),
+#         CarProcedureInfo.company == current_user.company,
+#
+#     ).order_by(
+#         CarProcedureInfo.approval_time.desc()).paginate(page, per_page=current_app.config
+#     ["FLASKY_PER_PAGE"], error_out=False)
+#     my_procedure = pagination.items
+#
+#     return render_template("home/rejectedprocedure.html", my_procedure=my_procedure, pagination=pagination)
 
 # # 所有流程清导出界面单页
 # @home.route("/procedurelists", methods=["GET", "POST"])

@@ -8,6 +8,7 @@ from flask import current_app, request, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 # from app.exceptions import ValidationError
 from management import db, login_manager
+from sqlalchemy.schema import UniqueConstraint
 
 
 class Permission:
@@ -384,6 +385,7 @@ class House(db.Model):  # 这是房间表
     __tablename__ = 'houses'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(15))
+    size=db.Column(db.String(15))
     company = db.Column(db.String(10))
 
     def __str__(self):
@@ -400,12 +402,21 @@ times = ((1, '8:00-8:30'), (2, '8:30-9:00'), (3, '9:00-9:30'), (4, '9:30-10:00')
 
 class Order(db.Model):  # 这是会议室预定记录表
     __tablename__ = 'orders'
+
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date())
-    user = db.Column(db.String(15))
-    house = db.Column(db.String(15))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    users = db.relationship('User', foreign_keys=[user_id],
+                                     backref="orders_users",
+                                     single_parent=True)
+    house_id = db.Column(db.Integer, db.ForeignKey("houses.id"))
+    houses = db.relationship('House', foreign_keys=[house_id],
+                                     backref="orders_houses",
+                                     single_parent=True)
     time = db.Column(db.Integer)
     company = db.Column(db.String(10))
+    # 创建联合唯一索引
+    __table_args__ = (db.UniqueConstraint('date', 'time', "house_id","company"),)
 
     def __str__(self):
         return self.name
