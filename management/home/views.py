@@ -1658,6 +1658,8 @@ def meetproceduremodal():
         tablebody += '<tr class="%s"><td>%s(%s)</td>' % (house.id, house.name, house.company)
         for choice in choices:
             for order in orders:
+                a=1
+
 
         tablebody += '</tr>'
     tablebody=Markup(tablebody)
