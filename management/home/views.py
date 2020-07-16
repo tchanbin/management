@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, abort, flash, request, \
-    current_app, make_response, g, session, Response, jsonify, json,Markup
+    current_app, make_response, g, session, Response, jsonify, json, Markup
 from .forms import LoginForm, ResetPwd, CarProcedureForm, AddNewUserForm, PackageProcedureForm, \
     AlterUserForm, AlterDepartmentForm, AddNewDepartmentForm
 from flask_login import login_required, current_user, login_user, logout_user
@@ -1633,7 +1633,7 @@ def alterdepartment():
 @login_required
 def meetproceduremodal():
     date = request.args.get('time')
-    now = datetime.now()
+    now = datetime.now().date()
     if request.is_xhr:
         data = json.loads(request.get_data())
         add_dic = data['add_dic']
@@ -1648,24 +1648,31 @@ def meetproceduremodal():
     if request.method == "POST":
         date = request.args.get("time")
     date = date or now
-    username = current_user.username
+    username = current_user.id
     orders = Order.query.filter_by(date=date)
     houses = House.query.all()
     choices = times
-    data_list = []
+    # data_list = []
     tablebody = ""
     for house in houses:  # 这就是构建表体数据
-        tablebody += '<tr class="%s"><td>%s(%s)</td>' % (house.id, house.name, house.company)
+        tablebody += '<tr class="%s"><td>%s(%s)</td>' % (house.id, house.name, house.size)
         for choice in choices:
             for order in orders:
-                a=1
-
-
+                if order.house_id == house.id and choice[0] == order.time:
+                    if username == order.user_id:
+                        tt = '<td class="nn danger"><span class="%s">%s</span></td>' % (choice[0], order.users.username)
+                        break
+                    else:
+                        tt = '<td class="nn warning"><span class="%s">%s</span></td>' % (
+                        choice[0], order.users.username)
+                        break
+                else:
+                    tt = '<td class="nn"><span class="%s"></span></td>' % choice[0]
+            tablebody += tt
         tablebody += '</tr>'
-    tablebody=Markup(tablebody)
+    tablebody = Markup(tablebody)
 
-
-    return render_template("home/procedureapproval3.html",tablebody=tablebody,choices=choices)
+    return render_template("home/procedureapproval3.html", tablebody=tablebody, choices=choices)
 
 #
 # # 门卫确认流程主页

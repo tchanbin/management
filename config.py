@@ -17,13 +17,13 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://root:11111111@127.0.0.1:3306/managementtest"
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://root:11111111@127.0.0.1:3306/management2.0"
 
 
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://root:11111111@172.18.0.3:3306/management"
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://root:11111111@172.18.0.3:3306/management2.0"
 
     @classmethod
     def init_app(cls, app):
