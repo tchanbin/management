@@ -1668,6 +1668,7 @@ def meetproceduremodal():
                         break
                 else:
                     tt = '<td class="nn"><span class="%s"></span></td>' % choice[0]
+            tt=tt or '<td ></td>'
             tablebody += tt
         tablebody += '</tr>'
     tablebody = Markup(tablebody)
