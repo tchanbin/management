@@ -218,12 +218,13 @@ def doneprocedures():
     procedurestate = request.args.get("procedurestate", "")
     proceduredate = request.args.get("proceduredate", "")
     # 找到所有审批人的流程的32位ID，形成列表
-    procedures2 = db.session.query(ProcedureApproval.procedure_approval_flowid).filter(
-        ProcedureApproval.procedure_approval_user_id == current_user.id,
-        ProcedureApproval.procedure_approval_current_line_node_id != 1,
-        ProcedureApproval.procedure_approval_state == 2,
-    ).distinct()
-    list = [c.procedure_approval_flowid for c in procedures2]
+    # procedures2 = db.session.query(ProcedureApproval.procedure_approval_flowid).filter(
+    #     ProcedureApproval.procedure_approval_user_id == current_user.id,
+    #     ProcedureApproval.procedure_approval_current_line_node_id != 1,
+    #     ProcedureApproval.procedure_approval_state == 2,
+    # ).distinct()
+    # list = [c.procedure_approval_flowid for c in procedures2]
+    list=[]
     # 在流程状态中按照列表进行查询
     pagination = ProcedureState.query.join(User,
                                            ProcedureState.procedure_state_user_id == User.id).add_entity(
