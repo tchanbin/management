@@ -295,7 +295,7 @@ def doneprocedures():
         User.username,
         ProcedureState.procedure_state_flowmodal,
         ProcedureState.procedure_state_flowid,
-    ).distinct().order_by(
+    ).order_by(
         ProcedureState.procedure_state_approval_datetime.desc()).paginate(page, per_page=current_app.config
     ["FLASKY_PER_PAGE"], error_out=False)
 
