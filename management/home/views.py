@@ -159,8 +159,65 @@ def todolist():
 @home.route("/myprocedures", methods=["GET", "POST"])
 @login_required
 def myprocedures():
+    page = request.args.get("page", 1, type=int)
+    procedurename = request.args.get("procedurename", "")
+    procedurestate = request.args.get("procedurestate", "")
+    proceduredate = request.args.get("proceduredate", "")
+    # 角色为管理员的可以看见所有运行中的流程信息
+    if current_user.role_id == 5:
 
-    return redirect(url_for("home.procedureapproval1"))
+        pagination = ProcedureApproval.query.join(User,
+                                                  ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
+            User).join(ProcedureState,
+                       ProcedureApproval.procedure_approval_flowid == ProcedureState.procedure_state_flowid).add_entity(
+            ProcedureState).filter(
+
+            ProcedureApproval.procedure_approval_current_line_node_id == 1,
+            ProcedureApproval.procedure_approval_company == current_user.company,
+            ProcedureApproval.procedure_approval_flowname.contains(procedurename),
+            ProcedureApproval.procedure_approval_approval_datetime.contains(proceduredate),
+            ProcedureState.procedure_state.contains(procedurestate),
+
+        ).with_entities(
+
+            ProcedureApproval.procedure_approval_flowid,
+            ProcedureApproval.procedure_approval_flowname,
+            ProcedureState.procedure_state,
+            func.max(ProcedureApproval.procedure_approval_approval_datetime).label("approval_datetime"),
+            ProcedureApproval.procedure_approval_flowmodal,
+        ).group_by(ProcedureApproval.procedure_approval_flowid).order_by(
+            ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
+        ["FLASKY_PER_PAGE"], error_out=False)
+    else:
+        pagination = ProcedureApproval.query.join(User,
+                                                  ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
+            User).join(ProcedureState,
+                       ProcedureApproval.procedure_approval_flowid == ProcedureState.procedure_state_flowid).add_entity(
+            ProcedureState).filter(
+            ProcedureApproval.procedure_approval_user_id == current_user.id,
+            ProcedureApproval.procedure_approval_company == current_user.company,
+            ProcedureApproval.procedure_approval_current_line_node_id == 1,
+            ProcedureApproval.procedure_approval_flowname.contains(procedurename),
+            ProcedureApproval.procedure_approval_approval_datetime.contains(proceduredate),
+            ProcedureState.procedure_state.contains(procedurestate),
+
+        ).with_entities(
+
+            ProcedureApproval.procedure_approval_flowid,
+            ProcedureApproval.procedure_approval_flowname,
+            ProcedureState.procedure_state,
+            func.max(ProcedureApproval.procedure_approval_approval_datetime).label("approval_datetime"),
+            ProcedureApproval.procedure_approval_flowmodal,
+        ).group_by(ProcedureApproval.procedure_approval_flowid).order_by(
+            ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
+        ["FLASKY_PER_PAGE"], error_out=False)
+
+    my_procedure = pagination.items
+
+    return render_template("home/myprocedures.html", my_procedure=my_procedure, pagination=pagination,
+                           procedurename=procedurename,
+                           procedurestate=procedurestate, proceduredate=proceduredate)
+
 
 # # 我的所有已办流程（不是发起，而是经过审批的流程）保存备份用
 # @home.route("/doneprocedures", methods=["GET", "POST"])
@@ -224,31 +281,32 @@ def doneprocedures():
     #     ProcedureApproval.procedure_approval_state == 2,
     # ).distinct()
     # list = [c.procedure_approval_flowid for c in procedures2]
-    list=[]
+    # list=[]
     # 在流程状态中按照列表进行查询
-    pagination = ProcedureState.query.join(User,
-                                           ProcedureState.procedure_state_user_id == User.id).add_entity(
-        User).join(ProcedureApproval,
-                   ProcedureState.procedure_state_flowid == ProcedureApproval.procedure_approval_flowid).add_entity(
-        ProcedureApproval).filter(
-        ProcedureState.procedure_state_flowid.in_(list),
-
-        ProcedureApproval.procedure_approval_current_line_node_id == 1,
-        ProcedureApproval.procedure_approval_flowname.contains(procedurename),
-        ProcedureApproval.procedure_approval_approval_datetime.contains(proceduredate),
-        ProcedureState.procedure_state.contains(procedurestate),
-
-    ).with_entities(
-
-        ProcedureState.procedure_state_name,
-        ProcedureState.procedure_state,
-        User.username,
-        func.max(ProcedureApproval.procedure_approval_approval_datetime).label("approval_datetime"),
-        ProcedureState.procedure_state_flowmodal,
-        ProcedureState.procedure_state_flowid,
-    ).group_by(ProcedureApproval.procedure_approval_flowid).order_by(
-        ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
-    ["FLASKY_PER_PAGE"], error_out=False)
+    # pagination = ProcedureState.query.join(User,
+    #                                        ProcedureState.procedure_state_user_id == User.id).add_entity(
+    #     User).join(ProcedureApproval,
+    #                ProcedureState.procedure_state_flowid == ProcedureApproval.procedure_approval_flowid).add_entity(
+    #     ProcedureApproval).filter(
+    #     ProcedureState.procedure_state_flowid.in_(list),
+    #
+    #     ProcedureApproval.procedure_approval_current_line_node_id == 1,
+    #     ProcedureApproval.procedure_approval_flowname.contains(procedurename),
+    #     ProcedureApproval.procedure_approval_approval_datetime.contains(proceduredate),
+    #     ProcedureState.procedure_state.contains(procedurestate),
+    #
+    # ).with_entities(
+    #
+    #     ProcedureState.procedure_state_name,
+    #     ProcedureState.procedure_state,
+    #     User.username,
+    #     func.max(ProcedureApproval.procedure_approval_approval_datetime).label("approval_datetime"),
+    #     ProcedureState.procedure_state_flowmodal,
+    #     ProcedureState.procedure_state_flowid,
+    # ).group_by(ProcedureApproval.procedure_approval_flowid).order_by(
+    #     ProcedureApproval.procedure_approval_approval_datetime.desc()).paginate(page, per_page=current_app.config
+    # ["FLASKY_PER_PAGE"], error_out=False)
+    pagination = ProcedureState.query.paginate(page, per_page=current_app.config["FLASKY_PER_PAGE"], error_out=False)
 
     my_procedure = pagination.items
 

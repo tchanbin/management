@@ -14,7 +14,7 @@
         <table class="table table-striped table-bordered table-hover table-responsive text-left" id="table"
                data-resizable="true">
             <thead>
-             <tr class="info">
+            <tr class="info">
                 <td colspan="8">
 
                     <form action="" method="get" class="form-inline">
@@ -22,7 +22,7 @@
 
                             <label for="">发起日期：</label>
                             <input type="text" id="proceduredate" name="proceduredate" placeholder="日期搜索"
-                                   class="form-control" AUTOCOMPLETE="OFF" value={{ proceduredate }} >
+                                   class="form-control" AUTOCOMPLETE="OFF" value={{ proceduredate }}>
                         </div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         <div class="form-group">
 
@@ -30,15 +30,15 @@
                             <input type="text" name="procedurename" placeholder="模糊搜索"
                                    class="form-control" value={{ procedurename }}>
                         </div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                         <div class="form-group">
+                        <div class="form-group">
 
                             <label for="">流程状态：</label>
-                             <select name="procedurestate" id="procedurestate" class="form-control">
-                                 <option value="">全部</option>
-                                 <option value="1">运行中</option>
-                                 <option value="2">完成</option>
-                                 <option value="5">取消</option>
-                             </select>
+                            <select name="procedurestate" id="procedurestate" class="form-control">
+                                <option value="">全部</option>
+                                <option value="1">运行中</option>
+                                <option value="2">完成</option>
+                                <option value="5">取消</option>
+                            </select>
                         </div>
 
                         <button type="submit" class="btn btn-default">搜索</button>
@@ -84,6 +84,14 @@
             </tbody>
         </table>
     </div>
+    <div class="container">
+        <div class="row ">
+
+            <div class="pagination col-md-12 ">
+                {{ macros.pagination_widget(pagination, '.myprocedures') }}
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 
@@ -107,7 +115,7 @@
             {% endfor %}
         });
     </script>
-      <script>
+    <script>
         $("#proceduredate").datetimepicker({
             minView: "month", //选择日期后，不会再跳转去选择时分秒
             format: 'yyyy-mm-dd',
@@ -120,9 +128,9 @@
 
     </script>
     <script>
-    $(function(){
-          $(" select option[value='" + {{ procedurestate }} + "']").attr("selected", "selected");
-  });
+        $(function () {
+            $(" select option[value='" + {{ procedurestate }} +"']").attr("selected", "selected");
+        });
     </script>
 {% endblock %}
 
