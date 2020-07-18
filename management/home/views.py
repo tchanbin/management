@@ -299,10 +299,10 @@ def doneprocedures():
         ProcedureState.procedure_state_name,
         ProcedureState.procedure_state,
         # User.username,
-        # func.max(ProcedureApproval.procedure_approval_approval_datetime).label("approval_datetime"),
+        func.max(ProcedureApproval.procedure_approval_approval_datetime).label("approval_datetime"),
         ProcedureState.procedure_state_flowmodal,
         ProcedureState.procedure_state_flowid,
-    ).paginate(page, per_page=current_app.config
+    ).group_by(ProcedureState.procedure_state_flowid).paginate(page, per_page=current_app.config
     ["FLASKY_PER_PAGE"], error_out=False)
     # pagination = ProcedureState.query.paginate(page, per_page=current_app.config["FLASKY_PER_PAGE"], error_out=False)
 
