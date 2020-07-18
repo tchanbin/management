@@ -226,6 +226,8 @@ class ProcedureState(db.Model):
     procedure_state_flowmodal = db.Column(db.String(25))
     procedure_state_procedure_list_name = db.Column(db.String(25))
     procedure_state_user_id = db.Column(db.Integer)
+    procedure_state_approval_datetime = db.Column(db.DateTime())
+
 
 
 # 字段权限表

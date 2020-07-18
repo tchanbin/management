@@ -73,10 +73,8 @@
                         {% elif my_procedure.procedure_state==5 %}
                             <td class="danger">取消</td>
                         {% endif %}
-{#                        <td>{{ my_procedure.username }}</td>#}
-                        <td>{{ my_procedure.procedure_state_name }}</td>
-{#                        <td>{{ my_procedure.approval_datetime }}</td>#}
-                        <td>{{ my_procedure.procedure_state_name }}</td>
+                        <td>{{ my_procedure.username }}</td>
+                        <td>{{ my_procedure.procedure_state_approval_datetime }}</td>
                         <td><a id="{{ my_procedure.id }}" class="query"
                                href="{{ url_for("home.{0}".format(my_procedure.procedure_state_flowmodal),procedure_id=my_procedure.procedure_state_flowid,procedure_door="read") }}"
                                data-toggle="modal">查看流程</a></td>
