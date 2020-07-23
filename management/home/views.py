@@ -1754,7 +1754,7 @@ def meetproceduremodal():
             for key, value in del_dic.items():
                 for ele in value:
                     del_order = Order.query.filter_by(date=date,
-                                                      user_id=current_user.id,
+                                                      # user_id=current_user.id,
                                                       house_id=int(key),
                                                       time=int(ele)).first()
                     db.session.delete(del_order)

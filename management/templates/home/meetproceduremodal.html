@@ -83,29 +83,63 @@
             var name = $(this).parent().attr('class');
             console.log("时间序号" + num);
             console.log("会议室号" + name);
-            //已经被别人选中的
-            if ($(this).hasClass('warning')) {
-                alert('别人已经选定')
-            }
-            //被自己选中的
-            else if ($(this).hasClass('danger')) {
-                $(this).removeClass('danger');
-                $(this).children('span').text('');
-                if (del_dic[name]) {
-                    del_dic[name].push(num)
-                } else {
-                    del_dic[name] = [num]
+            if ({{ current_user.role_id }}==5
+        )
+            {
+                console.log("你是管理员");
+                if ($(this).hasClass('warning')) {
+                    $(this).removeClass('warning');
+                    $(this).children('span').text('');
+                    if (del_dic[name]) {
+                        del_dic[name].push(num)
+                    } else {
+                        del_dic[name] = [num]
+                    }
+                } else if ($(this).hasClass('danger')) {
+                    $(this).removeClass('danger');
+                    $(this).children('span').text('');
+                    if (del_dic[name]) {
+                        del_dic[name].push(num)
+                    } else {
+                        del_dic[name] = [num]
+                    }
+                }
+                //刚才被点中的，再次点击，取消颜色
+                else if ($(this).hasClass('success')) {
+                    $(this).removeClass('success');
+                }
+                //没被选中的，点击变颜色
+                else {
+                    $(this).addClass('success');
                 }
             }
-            //刚才被点中的，再次点击，取消颜色
-            else if ($(this).hasClass('success')) {
-                $(this).removeClass('success');
+        else
+            {
+                //已经被别人选中的
+                if ($(this).hasClass('warning')) {
+                    alert('别人已经选定')
+                }
+                //被自己选中的
+                else if ($(this).hasClass('danger')) {
+                    $(this).removeClass('danger');
+                    $(this).children('span').text('');
+                    if (del_dic[name]) {
+                        del_dic[name].push(num)
+                    } else {
+                        del_dic[name] = [num]
+                    }
+                }
+                //刚才被点中的，再次点击，取消颜色
+                else if ($(this).hasClass('success')) {
+                    $(this).removeClass('success');
+                }
+                //没被选中的，点击变颜色
+                else {
+                    $(this).addClass('success');
+                }
             }
-            //没被选中的，点击变颜色
-            else {
-                $(this).addClass('success');
-            }
-        });
+        })
+        ;
         //保存的点击事件
         $('.tijiao').click(function () {
             //循环所有的td标签，然后把拥有success类的标签的值放入add_dic
@@ -138,22 +172,7 @@
                     location.href = '/meetproceduremodal?bookdate=' + data
                 }
             )
-            {#$.ajax({#}
-            {#    url: '',#}
-            {#    type: 'post',#}
-            {#    data: {#}
-            {#        'add_dic': JSON.stringify(add_dic),#}
-            {#        'del_dic': JSON.stringify(del_dic),#}
-            {#        'date': JSON.stringify(date),#}
-            {#        'csrfmiddlewaretoken': $('[name="csrfmiddlewaretoken"]').val()#}
-            {#    },#}
-            {#    success: function (res) {#}
-            {#        console.log(res);#}
-            {#        location.href = '/meetproceduremodal/?time=' + res#}
-            {#    }#}
-            {#})
-        #}
-        })
+        });
     </script>
 
     <script>
