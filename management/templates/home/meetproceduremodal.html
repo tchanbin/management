@@ -1,0 +1,190 @@
+{% extends 'home/homebase.html' %}
+
+{% block title %}会议室预约申请表{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for("static",filename="css/home/startprocedure.css") }}">
+
+    <style>
+        .outer {
+            width: 100%;
+            height: 40px;
+            background-color: #337ab7;
+            color: white;
+            line-height: 40px;
+        }
+
+        .left {
+            float: left;
+
+
+        }
+
+        #title {
+            float: right;
+            margin-right: 500px;
+            font-size: 20px;
+        }
+
+        #date {
+            float: left;
+        }
+    </style>
+{% endblock %}
+{% block page_content %}
+
+    <div class="panel panel-primary " style="padding: 2px;">
+        <div class="panel-heading text-center">会议室预约申请表</div>
+
+        <div class="row" style="margin-left: 5px">
+            <br>
+            {#            <div class="form-group form-inline">#}
+            <form action="" class="form-group form-inline col-lg-3">
+                <input type="text" class="form-control left" id="bookdate" name="bookdate" value={{ date }}>
+                <button type="submit" class="btn btn-primary">查询</button>
+            </form>
+            {#            </div>#}
+        </div>
+        {#            查询与预定界面，以日期时间形式展开#}
+        <div class="row" style="margin: 5px">
+            <table class="table table-striped table-bordered table-hover table-responsive text-left">
+                <thead>
+                <tr>
+                    <th>会议室</th>
+                    {#                     #这是循环生产时间的信息，也就是表头#}
+                    {% for choice in choices %}
+                        <th>{{ choice.1 }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {#                    #所有的表体数据都是由后端构造的#}
+                {{ tablebody }}
+                </tbody>
+            </table>
+            <button class="btn btn-block btn-primary tijiao">提交</button>
+        </div>
+    </div>
+
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        var add_dic = {};
+        var del_dic = {};
+        //给每个nn类的标签绑定点击事件
+        $('.nn').click(function () {
+            var text = $(this).text();
+            {#var user = $('.user').attr('id');#}
+            console.log("预订人" + text);
+            var num = $(this).children('span').first().attr('class');
+            var name = $(this).parent().attr('class');
+            console.log("时间序号" + num);
+            console.log("会议室号" + name);
+            //已经被别人选中的
+            if ($(this).hasClass('warning')) {
+                alert('别人已经选定')
+            }
+            //被自己选中的
+            else if ($(this).hasClass('danger')) {
+                $(this).removeClass('danger');
+                $(this).children('span').text('');
+                if (del_dic[name]) {
+                    del_dic[name].push(num)
+                } else {
+                    del_dic[name] = [num]
+                }
+            }
+            //刚才被点中的，再次点击，取消颜色
+            else if ($(this).hasClass('success')) {
+                $(this).removeClass('success');
+            }
+            //没被选中的，点击变颜色
+            else {
+                $(this).addClass('success');
+            }
+        });
+        //保存的点击事件
+        $('.tijiao').click(function () {
+            //循环所有的td标签，然后把拥有success类的标签的值放入add_dic
+            $('td').each(function () {
+
+                var num = $(this).children('span').first().attr('class');
+                var name = $(this).parent().attr('class');
+                if ($(this).hasClass('success')) {
+                    if (add_dic[name]) {
+                        add_dic[name].push(num)
+                    } else {
+                        add_dic[name] = [num]
+                    }
+                }
+            });
+            //把add_dic，not_add_dic加入一个列表中，最后把当前选择的日期也放进去
+            var date = $('.left').first().val();
+            console.log("add_dic" + add_dic["1"]);
+            //用ajax请求，把列表发送到后端
+
+            $.post(
+                "{{ url_for("home.meetproceduremodal") }}",
+                JSON.stringify({
+                    'add_dic': add_dic,
+                    'del_dic': del_dic,
+                    'date': date
+                }),
+                function (data) {
+                    console.log(data);
+                    location.href = '/meetproceduremodal?bookdate=' + data
+                }
+            )
+            {#$.ajax({#}
+            {#    url: '',#}
+            {#    type: 'post',#}
+            {#    data: {#}
+            {#        'add_dic': JSON.stringify(add_dic),#}
+            {#        'del_dic': JSON.stringify(del_dic),#}
+            {#        'date': JSON.stringify(date),#}
+            {#        'csrfmiddlewaretoken': $('[name="csrfmiddlewaretoken"]').val()#}
+            {#    },#}
+            {#    success: function (res) {#}
+            {#        console.log(res);#}
+            {#        location.href = '/meetproceduremodal/?time=' + res#}
+            {#    }#}
+            {#})
+        #}
+        })
+    </script>
+
+    <script>
+        $("#bookdate").datetimepicker({
+            minView: "month", //选择日期后，不会再跳转去选择时分秒
+            format: 'yyyy-mm-dd',
+            language: 'zh-CN',
+            autoclose: true,
+            startView: 2,
+            todayBtn: true,
+
+        });
+
+    </script>
+    {#   插入成功提示#}
+    <script>
+        $(document).ready(function () {
+            $._messengerDefaults = {
+                extraClasses: 'messenger-fixed messenger-theme-future messenger-on-top ',
+                theme: 'flat'
+            };
+            {% for msg in get_flashed_messages() %}
+                $.globalMessenger().post({
+                    message: "{{msg}}",//提示信息
+                    type: 'error',//消息类型。error、info、success
+                    hideAfter: 3,//多长时间消失
+                    showCloseButton: true,//是否显示关闭按钮
+                    hideOnNavigate: true //是否隐藏导航
+                })
+            {% endfor %}
+        });
+    </script>
+
+{% endblock %}

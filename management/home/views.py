@@ -188,7 +188,7 @@ def myprocedures():
             ProcedureState.procedure_state_approval_datetime.desc()).paginate(page, per_page=current_app.config
         ["FLASKY_PER_PAGE"], error_out=False)
     else:
-        pagination =ProcedureState.query.join(User,
+        pagination = ProcedureState.query.join(User,
                                                ProcedureState.procedure_state_user_id == User.id).add_entity(
             User).filter(
             ProcedureState.procedure_state_user_id == current_user.id,
@@ -1349,7 +1349,7 @@ def packageproceduremodal():
 @permission_required(Permission.APPLY)
 def procedureapproval3():
     choices = times
-    return render_template("home/procedureapproval3.html", current_time=datetime.utcnow(), choices=choices)
+    return render_template("home/meetproceduremodal.html", current_time=datetime.utcnow(), choices=choices)
 
 
 # 我的已经审批过的流程清单
@@ -1737,45 +1737,73 @@ def alterdepartment():
 @home.route("/meetproceduremodal", methods=["GET", "POST"])
 @login_required
 def meetproceduremodal():
-    date = request.args.get('time')
+    date = request.args.get('bookdate')
+    # freshdate = request.args.get('freshdate')
+
     now = datetime.now().date()
+    # user_id = request.args.get("username")
+    # 先操作数据，处理成最新的之后，再生成会议室预约表。
     if request.is_xhr:
         data = json.loads(request.get_data())
         add_dic = data['add_dic']
         del_dic = data['del_dic']
         date = data['date']
-        date = date or now
+        date=datetime.strptime(date,'%Y-%m-%d').date()
+        date = date
         if del_dic:  # 拿到要删除的字典，然后删除
             for key, value in del_dic.items():
                 for ele in value:
-                    Order.query.filter_by(date=date, user_id=request.user.id, house_id=int(key),
-                                          time=int(ele)).delete()
+                    del_order = Order.query.filter_by(date=date,
+                                                      user_id=current_user.id,
+                                                      house_id=int(key),
+                                                      time=int(ele)).first()
+                    db.session.delete(del_order)
+                    try:
+                        db.session.commit()
+
+                    except:
+                        db.session.rollback()
+                        flash("取消会议室失败，请联系管理员")
+            flash("会议室已取消")
+        if add_dic:  # 这是拿到添加的字典，然后添加
+            for key, value in add_dic.items():
+                for i in value:
+                    add_order = Order(date=date,
+                                      user_id=current_user.id,
+                                      house_id=int(key),
+                                      time=int(i),
+                                      company=current_user.company)
+                    db.session.add(add_order)
+                    try:
+                        db.session.commit()
+                    except:
+                        db.session.rollback()
+                        flash("预约会议室失败，请联系管理员")
+            flash("会议室预订成功")
+        date=str(date)
+        return jsonify(date)
     if request.method == "POST":
-        date = request.args.get("time")
+        date = request.args.get("bookdate")
     date = date or now
-    username = current_user.id
     orders = Order.query.filter_by(date=date)
-    houses = House.query.all()
+    houses = House.query.filter_by(company=current_user.company)
     choices = times
-    # data_list = []
     tablebody = ""
     for house in houses:  # 这就是构建表体数据
         tablebody += '<tr class="%s"><td>%s(%s)</td>' % (house.id, house.name, house.size)
         for choice in choices:
+            tt = '<td class="nn"><span class="%s"></span></td>' % choice[0]
             for order in orders:
                 if order.house_id == house.id and choice[0] == order.time:
-                    if username == order.user_id:
+                    if order.user_id == current_user.id:
                         tt = '<td class="nn danger"><span class="%s">%s</span></td>' % (choice[0], order.users.username)
                         break
                     else:
                         tt = '<td class="nn warning"><span class="%s">%s</span></td>' % (
                             choice[0], order.users.username)
                         break
-                else:
-                    tt = '<td class="nn"><span class="%s"></span></td>' % choice[0]
-            tt = tt or '<td ></td>'
             tablebody += tt
         tablebody += '</tr>'
     tablebody = Markup(tablebody)
 
-    return render_template("home/procedureapproval3.html", tablebody=tablebody, choices=choices)
+    return render_template("home/meetproceduremodal.html", tablebody=tablebody, choices=choices, date=date)
