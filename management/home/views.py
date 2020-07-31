@@ -358,7 +358,8 @@ def procedureapproval1():
                                                    User.role_id.in_(["3", "4", "5"]))]
     # 查找到所有二级审批通过的车的申请信息
     carusestatus = CarProcedureInfo.query.filter(
-        CarProcedureInfo.state.in_(["2", "3"], )
+        CarProcedureInfo.state.in_(["2", "3"], ),
+        CarProcedureInfo.company==current_user.company
     ).order_by(CarProcedureInfo.book_start_datetime.desc()).all()
     # 对表单的提交内容进行验证
     if form.validate_on_submit():
