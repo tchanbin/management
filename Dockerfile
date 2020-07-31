@@ -13,6 +13,6 @@ COPY migrations migrations
 COPY config.py manage.py boot.sh ./
 
 RUN touch boot.sh
-EXPOSE 6000
+EXPOSE 5000
 
 ENTRYPOINT ["sh","./boot.sh"]

@@ -20,7 +20,7 @@ services:
     restart: always
     
   flask6000:
-    image: daocloud.io/tchanbin/gzdhd:master-842bd25
+    image: daocloud.io/tchanbin/gzdhd:2.3.3
     #image: test:1.0
     ports:
       - "6000:6000"
