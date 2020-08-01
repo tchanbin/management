@@ -481,7 +481,7 @@ def carproceduremodal():
                 form.approvaluser.choices = [(c.id, c.username) for c in
                                              User.query.filter(User.company == current_user.company,
 
-                                                               User.role_id.in_(["4"]))]
+                                                               User.role_id.in_(["4","5"]))]
             else:
                 form.approvaluser.choices = [(c.id, c.username) for c in
                                              User.query.filter(User.company == current_user.company,
