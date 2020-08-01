@@ -476,7 +476,7 @@ def carproceduremodal():
                 form.approvaluser.choices = [(c.id, c.username) for c in
                                              User.query.filter(User.company == current_user.company,
                                                                User.departmentid == current_user.departmentid,
-                                                               User.role_id.in_(["3", "4"]))]
+                                                               User.role_id.in_(["3", "4","5"]))]
             elif current_node == 2:
                 form.approvaluser.choices = [(c.id, c.username) for c in
                                              User.query.filter(User.company == current_user.company,
@@ -487,7 +487,7 @@ def carproceduremodal():
                                              User.query.filter(User.company == current_user.company,
                                                                User.role_id.in_(["2"]))]
 
-            form.approvaluser.data = myprocedure.ProcedureApproval.procedure_approval_user_id
+            # form.approvaluser.data = myprocedure.ProcedureApproval.procedure_approval_user_id
             L1approvalreasons = ProcedureApproval.query.join(User,
                                                              ProcedureApproval.procedure_approval_user_id == User.id).add_entity(
                 User).filter(ProcedureApproval.procedure_approval_flowid == procedure_id,

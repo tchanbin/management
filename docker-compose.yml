@@ -3,7 +3,7 @@ version: "3"
 services:
   
   flask:
-    image: daocloud.io/tchanbin/gzdhd:1.4.0
+    image: daocloud.io/tchanbin/gzdhd:2.3.4
     #image: test:1.0
     ports:
       - "5000:5000"
@@ -19,22 +19,22 @@ services:
       - mysql
     restart: always
     
-  flask6000:
-    image: daocloud.io/tchanbin/gzdhd:2.3.3
-    #image: test:1.0
-    ports:
-      - "6000:6000"
-    environment:
-      - TZ=Asia/Shanghai
-    #command: [                        #使用 command 可以覆盖容器启动后默认执行的命令
-    #      '--default-time-zone=+08:00'                    #设置mysql数据库的 时区问题！！！！ 而不是设置容器的时区问题！！！！
-    #]
-    networks:
-     default:
-       ipv4_address: 172.18.0.5
-    depends_on:
-      - mysql
-    restart: always
+  # flask6000:
+    # image: daocloud.io/tchanbin/gzdhd:2.3.3
+    # #image: test:1.0
+    # ports:
+      # - "6000:6000"
+    # environment:
+      # - TZ=Asia/Shanghai
+    # #command: [                        #使用 command 可以覆盖容器启动后默认执行的命令
+    # #      '--default-time-zone=+08:00'                    #设置mysql数据库的 时区问题！！！！ 而不是设置容器的时区问题！！！！
+    # #]
+    # networks:
+     # default:
+       # ipv4_address: 172.18.0.5
+    # depends_on:
+      # - mysql
+    # restart: always
     
   mysql:
     image: mysql:8.0.18
