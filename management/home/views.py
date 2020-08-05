@@ -476,16 +476,20 @@ def carproceduremodal():
                 form.approvaluser.choices = [(c.id, c.username) for c in
                                              User.query.filter(User.company == current_user.company,
                                                                User.departmentid == current_user.departmentid,
-                                                               User.role_id.in_(["3", "4","5"]))]
+                                                               User.role_id.in_(["3", "4","5"]),
+                                                               User.status=="正常")]
             elif current_node == 2:
                 form.approvaluser.choices = [(c.id, c.username) for c in
                                              User.query.filter(User.company == current_user.company,
 
-                                                               User.role_id.in_(["4","5"]))]
+                                                               User.role_id.in_(["4","5"]),
+                                                               User.status=="正常")]
             else:
                 form.approvaluser.choices = [(c.id, c.username) for c in
                                              User.query.filter(User.company == current_user.company,
-                                                               User.role_id.in_(["2"]))]
+                                                               User.role_id.in_(["2"]),
+                                                               User.status == "正常"
+                                                               )]
 
             # form.approvaluser.data = myprocedure.ProcedureApproval.procedure_approval_user_id
             L1approvalreasons = ProcedureApproval.query.join(User,
@@ -917,7 +921,9 @@ def packageproceduremodal():
     forminfo.approvaluser.choices = [(c.id, c.username) for c in
                                      User.query.filter(User.company == current_user.company,
 
-                                                       User.role_id.in_(["2"]))]
+                                                       User.role_id.in_(["2"]),
+                                                       User.status == "正常"
+                                                       )]
     procedure_id = request.args.get("procedure_id")
     procedure_door = request.args.get("procedure_door")
     # 以read形式进来的get
