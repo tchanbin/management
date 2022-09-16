@@ -45,7 +45,7 @@ Jinja2==2.10.3
 kiwisolver==1.1.0
 lazy-object-proxy==1.4.3
 lml==0.0.9
-Mako==1.1.1
+Mako==1.2.2
 Markdown==3.2
 markup==0.2
 MarkupSafe==1.1.1
