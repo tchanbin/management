@@ -60,7 +60,7 @@ parso==0.5.2
 pickleshare==0.7.5
 pipreqs==0.4.10
 prompt-toolkit==3.0.2
-protobuf==3.6.1
+protobuf==3.18.3
 pycodestyle==2.5.0
 pycparser==2.19
 pyexcel==0.5.15
